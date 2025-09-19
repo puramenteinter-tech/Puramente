@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import BaseURL from "../../../baseurl";
 import { Helmet } from "react-helmet-async";
@@ -91,17 +91,15 @@ const BlogDetails = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Main Blog */}
         <article className="bg-white shadow rounded-lg overflow-hidden">
-          {blog.image && (
-            <img
-              src={`${BaseURL}${blog.image}`}
-              alt={blog.title}
-              className="w-full h-96 object-cover"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = `${BaseURL}/placeholder-blog.jpg`;
-              }}
-            />
-          )}
+          <img
+            src={blog.image ? `${BaseURL}${blog.image}` : "/journey.webp"}
+            alt={blog.title}
+            className="w-full h-96 object-cover"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/journey.webp";
+            }}
+          />
 
           <div className="p-6 md:p-8">
             <span className="text-gray-500 text-sm">
@@ -135,13 +133,15 @@ const BlogDetails = () => {
                   key={relatedBlog._id}
                   className="bg-white shadow rounded-lg overflow-hidden"
                 >
-                  {relatedBlog.image && (
-                    <img
-                      src={`${BaseURL}${relatedBlog.image}`}
-                      alt={relatedBlog.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
+                  <img
+                    src={relatedBlog.image ? `${BaseURL}${relatedBlog.image}` : "/journey.webp"}
+                    alt={relatedBlog.title}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/journey.webp";
+                    }}
+                  />
                   <div className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       {relatedBlog.title}
@@ -151,12 +151,12 @@ const BlogDetails = () => {
                         relatedBlog.content.substring(0, 100)}
                       ...
                     </p>
-                    <a
-                      href={`/blogs/${relatedBlog.slug}`}
+                    <Link
+                      to={`/blogs/${relatedBlog.slug}`}
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
                       Read More →
-                    </a>
+                    </Link>
                   </div>
                 </div>
               ))}

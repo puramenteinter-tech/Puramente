@@ -54,8 +54,19 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const app = express();
 
+// CORS with sensible fallbacks for local dev
+const allowedOrigins = [
+  FRONTEND_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+].filter(Boolean);
+
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow non-browser requests
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
