@@ -20,14 +20,7 @@ export async function Logout() {
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
-  // Clear server cart for this user if logged in
-  if (userId && token) {
-    try {
-      await axios.delete(`${BaseURL}/api/cart/clear/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } catch (_) {}
-  }
+  // Do NOT clear server cart on logout; we want persistence across sessions
 
   // Clear client cart (IndexedDB + localStorage)
   try {

@@ -9,9 +9,39 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
   // ✅ Login ke baad backend se cart set karne ke liye helper
+  const normalizeFromServer = (items = []) => {
+    return items.map((it) => {
+      const productId = (it.productId && it.productId.toString) ? it.productId.toString() : (it.productId || it._id || it.id);
+      const imageUrl = it.imageUrl || it.imageurl || "";
+      return {
+        _id: productId,
+        name: it.name,
+        price: Number(it.price || 0),
+        quantity: Math.max(1, Number(it.quantity || 1)),
+        imageUrl,
+        imageurl: imageUrl
+      };
+    });
+  };
+
+  const normalizeLocal = (items = []) => {
+    return items.map((it) => {
+      const imageUrl = it.imageUrl || it.imageurl || "";
+      return {
+        ...it,
+        _id: it._id || it.id || it.productId || it.product_id,
+        price: Number(it.price || 0),
+        quantity: Math.max(1, Number(it.quantity || 1)),
+        imageUrl,
+        imageurl: imageUrl
+      };
+    });
+  };
+
   const setCartFromBackend = (items) => {
-    setCartItems(items);
-    localStorage.setItem("cart", JSON.stringify(items));
+    const normalized = normalizeFromServer(items || []);
+    setCartItems(normalized);
+    localStorage.setItem("cart", JSON.stringify(normalized));
   };
 
   // ✅ Mount pe local cart load
@@ -26,8 +56,9 @@ export const CartProvider = ({ children }) => {
             headers: { Authorization: `Bearer ${token}` }
           });
           const items = res.data?.items || [];
-          setCartItems(items);
-          localStorage.setItem("cart", JSON.stringify(items));
+          const normalized = normalizeFromServer(items);
+          setCartItems(normalized);
+          localStorage.setItem("cart", JSON.stringify(normalized));
           return;
         } catch (_) {
           // fallthrough to local
@@ -37,13 +68,17 @@ export const CartProvider = ({ children }) => {
       // Guest/local fallback
       const storedCart = localStorage.getItem("cart");
       if (storedCart && storedCart !== "[]") {
-        setCartItems(JSON.parse(storedCart));
+        const parsed = JSON.parse(storedCart);
+        const normalized = normalizeLocal(parsed);
+        setCartItems(normalized);
+        localStorage.setItem("cart", JSON.stringify(normalized));
         return;
       }
       const items = await getCartItems();
       if (items?.length) {
-        setCartItems(items);
-        localStorage.setItem("cart", JSON.stringify(items));
+        const normalized = normalizeLocal(items);
+        setCartItems(normalized);
+        localStorage.setItem("cart", JSON.stringify(normalized));
       }
     }
     fetchCart();
@@ -76,8 +111,8 @@ export const CartProvider = ({ children }) => {
 
     setCartItems(updatedCart);
     await saveCartItem(existingItem
-      ? { ...existingItem, quantity: Math.max(1, existingItem.quantity + qty) }
-      : { ...product, quantity: qty }
+      ? { ...existingItem, _id: existingItem._id, quantity: Math.max(1, existingItem.quantity + qty) }
+      : { ...product, _id: product._id || product.id, quantity: qty }
     );
 
     // ✅ Backend save
