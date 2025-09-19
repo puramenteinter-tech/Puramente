@@ -13,13 +13,17 @@ export default function SingleProduct() {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [showLens, setShowLens] = useState(false);
-  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
 
   // For panning:
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0, inside: false });
+
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
+  const imgRef = useRef(null);
 
   const { id } = useParams();
   const { addToCart, cartItems, removeFromCart } = useCart();
@@ -50,7 +54,7 @@ export default function SingleProduct() {
     if (product.imageurl && product.imageurl.startsWith("http")) {
       return product.imageurl;
     }
-    return "/default-placeholder.jpg";
+    return "/default-placeholder.svg";
   };
 
   const handleAddToCart = () => {
@@ -79,7 +83,7 @@ export default function SingleProduct() {
   // Zoom control
   const increaseZoom = () => {
     setZoomLevel(prev => {
-      const next = Math.min(prev + 0.25, 3); // Increased max zoom to 3x
+      const next = Math.min(prev + 0.25, 3);
       if (next === 1) setOffset({ x: 0, y: 0 });
       else clampOffset(offset, next);
       return next;
@@ -96,7 +100,7 @@ export default function SingleProduct() {
   };
 
   const clampOffset = (offset, zoom) => {
-    const containerSize = 500; // Increased container size
+    const containerSize = 500;
     const imageSize = containerSize * zoom;
 
     const maxOffset = (imageSize - containerSize) / 2;
@@ -154,17 +158,28 @@ export default function SingleProduct() {
     dragging.current = false;
   };
 
-  // Hover magnifier (Flipkart-style)
-  const imageRef = useRef(null);
+  // Handle mouse move for hover zoom effect
   const handleMouseMove = (e) => {
-    if (!imageRef.current) return;
-    const rect = imageRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setLensPos({ x, y });
-    setShowLens(true);
+    if (zoomLevel !== 1) return;
+    
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    
+    setCursorPosition({ x, y, inside: true });
+    setMagnifierPosition({ x: e.clientX, y: e.clientY });
   };
-  const handleMouseLeave = () => setShowLens(false);
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    setShowMagnifier(zoomLevel === 1);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setShowMagnifier(false);
+    setCursorPosition({ x: 0, y: 0, inside: false });
+  };
 
   if (loading) return <div className="text-center mt-10">Loading...</div>;
   if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
@@ -183,7 +198,7 @@ export default function SingleProduct() {
       <div className="container mx-auto px-4 py-10">
         {product && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-            {/* Image Section - Made larger */}
+            {/* Image Section with Hover Zoom */}
             <div className="w-full flex flex-col items-center gap-4">
               <div
                 className="overflow-hidden rounded-xl shadow-lg border p-2 relative"
@@ -192,22 +207,29 @@ export default function SingleProduct() {
                   maxWidth: '500px', 
                   height: '500px',
                   touchAction: "none", 
-                  cursor: zoomLevel > 1 ? "grab" : "default" 
+                  cursor: zoomLevel > 1 ? "grab" : "zoom-in" 
                 }}
                 onMouseDown={onDragStart}
-                onMouseMove={onDragMove}
+                onMouseMove={(e) => {
+                  onDragMove(e);
+                  if (zoomLevel === 1) handleMouseMove(e);
+                }}
                 onMouseUp={onDragEnd}
-                onMouseLeave={onDragEnd}
+                onMouseLeave={(e) => {
+                  onDragEnd();
+                  handleMouseLeave();
+                }}
+                onMouseEnter={handleMouseEnter}
                 onTouchStart={onDragStart}
                 onTouchMove={onDragMove}
                 onTouchEnd={onDragEnd}
                 onTouchCancel={onDragEnd}
               >
                 <img
-                  ref={imageRef}
+                  ref={imgRef}
                   src={getImageSrc(product)}
                   alt={product.name}
-                  onError={(e) => (e.target.src = "/default-placeholder.png")}
+                  onError={(e) => (e.target.src = "/default-placeholder.svg")}
                   className="object-contain select-none w-full h-full"
                   style={{
                     transform: `scale(${zoomLevel}) translate(${offset.x / zoomLevel}px, ${offset.y / zoomLevel}px)`,
@@ -215,26 +237,54 @@ export default function SingleProduct() {
                     userSelect: "none",
                   }}
                   draggable={false}
-                  onMouseMove={handleMouseMove}
-                  onMouseEnter={() => setShowLens(true)}
-                  onMouseLeave={handleMouseLeave}
                 />
-                {showLens && (
-                  <div
-                    className="hidden lg:block absolute top-0 right-[-540px] w-[520px] h-[520px] bg-white border rounded-xl shadow-xl overflow-hidden"
-                  >
-                    <img
-                      src={getImageSrc(product)}
-                      alt="zoom"
-                      className="w-full h-full object-cover"
-                      style={{
-                        transform: `translate(${-Math.max(lensPos.x * 2 - 260, 0)}px, ${-Math.max(lensPos.y * 2 - 260, 0)}px) scale(2)`,
-                        transformOrigin: "top left",
-                      }}
-                    />
-                  </div>
+                
+                {/* Magnifier lens for hover zoom effect */}
+                {showMagnifier && cursorPosition.inside && (
+                  <div 
+                    className="absolute border-2 border-cyan-500 rounded-full pointer-events-none"
+                    style={{
+                      width: '100px',
+                      height: '100px',
+                      left: `${cursorPosition.x}%`,
+                      top: `${cursorPosition.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      zIndex: 10,
+                      display: zoomLevel !== 1 ? 'none' : 'block'
+                    }}
+                  />
                 )}
               </div>
+
+              {/* Zoomed preview container (appears on hover) */}
+              {showMagnifier && cursorPosition.inside && (
+                <div 
+                  className="absolute hidden lg:block overflow-hidden rounded-xl shadow-lg border bg-white"
+                  style={{
+                    width: '300px',
+                    height: '300px',
+                    left: `${magnifierPosition.x + 20}px`,
+                    top: `${magnifierPosition.y - 150}px`,
+                    zIndex: 20,
+                    transform: 'translate(0, 0)',
+                  }}
+                >
+                  <div 
+                    style={{
+                      width: '1000px',
+                      height: '1000px',
+                      backgroundImage: `url(${getImageSrc(product)})`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: `${cursorPosition.x}% ${cursorPosition.y}%`,
+                      backgroundSize: '200%',
+                      position: 'absolute',
+                      left: `-${cursorPosition.x * 8}px`,
+                      top: `-${cursorPosition.y * 8}px`,
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Zoom Controls */}
               <div className="flex items-center gap-3">
@@ -249,7 +299,7 @@ export default function SingleProduct() {
                 <button
                   onClick={increaseZoom}
                   className="bg-cyan-600 text-white px-3 py-2 rounded-full hover:bg-cyan-500 transition"
-                  disabled={zoomLevel >= 3} // Updated max zoom
+                  disabled={zoomLevel >= 3}
                 >
                   <ZoomIn size={18} />
                 </button>
@@ -267,7 +317,7 @@ export default function SingleProduct() {
               {product.description && (
                 <div className="mt-4">
                   <p className="text-cyan-900 font-bold text-lg">Description:</p>
-                  <p className="text-gray-700 line-clamp-3"> {/* Limiting to 3 lines */}
+                  <p className="text-gray-700 line-clamp-3">
                     {product.description}
                   </p>
                 </div>
