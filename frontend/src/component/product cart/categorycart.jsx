@@ -169,7 +169,7 @@ export default function CategoryPage() {
                 data-aos="zoom-in"
                 data-aos-duration="500"
               >
-                <div className="relative w-full h-36">
+                <div className="relative w-full h-64">
                   <Link to={`/singleproduct/${product._id}`}>
                     <img
                       src={getImageSrc(product)}
@@ -183,7 +183,7 @@ export default function CategoryPage() {
                 </div>
 
                 <div className="mt-6 text-center">
-                  <h3 className="text-sm lg:text-xl font-bold text-cyan-800 line-clamp-1 tracking-tight">
+                  <h3 className="text-base font-semibold text-cyan-800 line-clamp-1 tracking-tight">
                     {product.name}
                   </h3>
                   <p className="text-sm text-cyan-600 mt-1">{product.category}</p>
@@ -196,7 +196,7 @@ export default function CategoryPage() {
                       <div className="mt-4 flex justify-center items-center gap-2">
                         <button
                           onClick={() => decrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white px-3 py-1 rounded-full shadow hover:bg-cyan-700"
+                          className="bg-cyan-600 text-white px-2 py-1 text-sm rounded-full shadow hover:bg-cyan-700"
                         >
                           -
                         </button>
@@ -220,7 +220,7 @@ export default function CategoryPage() {
 
                         <button
                           onClick={() => incrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white px-3 py-1 rounded-full shadow hover:bg-cyan-700"
+                          className="bg-cyan-600 text-white px-2 py-1 text-sm rounded-full shadow hover:bg-cyan-700"
                         >
                           +
                         </button>
@@ -228,7 +228,7 @@ export default function CategoryPage() {
 
                       <button
                         onClick={() => handleRemoveFromCart(product._id)}
-                        className="mt-2 w-full bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
+                        className="mt-2 w-full bg-cyan-500 text-white text-xs font-semibold py-1 px-3 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
                       >
                         Remove Item
                       </button>
@@ -236,7 +236,7 @@ export default function CategoryPage() {
                   ) : (
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className="mt-4 w-full bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
+                      className="mt-4 w-full bg-cyan-500 text-white text-sm font-semibold py-1 px-3 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
                     >
                       Add To List
                     </button>

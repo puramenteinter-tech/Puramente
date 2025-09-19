@@ -170,11 +170,13 @@ export default function SubCategoryPage() {
                   className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 relative overflow-hidden"
                 >
                   <Link to={`/singleproduct/${product._id}`}>
-                    <ProductImage product={product} />
+                    <div className="relative w-full h-64">
+                      <ProductImage product={product} />
+                    </div>
                   </Link>
 
                   <div className="mt-6 text-center">
-                    <h3 className="text-sm lg:text-xl font-bold text-cyan-800 line-clamp-1 tracking-tight">
+                    <h3 className="text-base font-semibold text-cyan-800 line-clamp-1 tracking-tight">
                       {product.name}
                     </h3>
                     <p className="text-sm text-cyan-600 mt-1">{product.category}</p>
@@ -188,7 +190,7 @@ export default function SubCategoryPage() {
                         <div className="mt-4 flex justify-center items-center gap-2">
                           <button
                             onClick={() => decrementQuantity(product._id)}
-                            className="bg-cyan-600 text-white px-3 py-1 rounded-full shadow hover:bg-cyan-700"
+                          className="bg-cyan-600 text-white px-2 py-1 text-sm rounded-full shadow hover:bg-cyan-700"
                           >
                             -
                           </button>
@@ -212,7 +214,7 @@ export default function SubCategoryPage() {
 
                           <button
                             onClick={() => incrementQuantity(product._id)}
-                            className="bg-cyan-600 text-white px-3 py-1 rounded-full shadow hover:bg-cyan-700"
+                          className="bg-cyan-600 text-white px-2 py-1 text-sm rounded-full shadow hover:bg-cyan-700"
                           >
                             +
                           </button>
@@ -220,7 +222,7 @@ export default function SubCategoryPage() {
 
                         <button
                           onClick={() => handleRemoveFromCart(product._id)}
-                          className="mt-2 w-full bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
+                        className="mt-2 w-full bg-cyan-500 text-white text-xs font-semibold py-1 px-3 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
                         >
                           Remove Item
                         </button>
@@ -228,7 +230,7 @@ export default function SubCategoryPage() {
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="mt-4 w-full bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
+                      className="mt-4 w-full bg-cyan-500 text-white text-sm font-semibold py-1 px-3 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
                       >
                         Add To List
                       </button>

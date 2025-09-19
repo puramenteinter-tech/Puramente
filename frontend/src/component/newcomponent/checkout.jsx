@@ -136,6 +136,14 @@ const Checkout = () => {
   console.log("Cart Items:", cartItems);
 
   try {
+    // Enforce login before placing order
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login", { replace: false, state: { from: "/cart" } });
+      setIsSubmitting(false);
+      return;
+    }
+
     const payload = {
       ...formData,
       orderDetails: cartItems.map(item => ({
@@ -150,14 +158,13 @@ const Checkout = () => {
 
     console.log("Full Request Payload:", payload);
 
-   const token = localStorage.getItem("token");
    const response = await axios.post(
       `${BaseURL}/api/orders/submit-order`,
       payload,
       {
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          Authorization: `Bearer ${token}`
         }
       }
     );
@@ -173,7 +180,12 @@ const Checkout = () => {
     
   } catch (error) {
     console.error("!!! REQUEST FAILED !!!", error);
-    alert("Failed to submit order. Please try again.");
+    if (error?.response?.status === 401) {
+      alert("Please login to place your order.");
+      navigate("/login", { replace: false, state: { from: "/cart" } });
+    } else {
+      alert("Failed to submit order. Please try again.");
+    }
     
   } finally {
     setIsSubmitting(false); // Always reset submission state

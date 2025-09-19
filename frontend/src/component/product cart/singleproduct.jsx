@@ -13,6 +13,8 @@ export default function SingleProduct() {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [showLens, setShowLens] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
 
   // For panning:
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -152,6 +154,18 @@ export default function SingleProduct() {
     dragging.current = false;
   };
 
+  // Hover magnifier (Flipkart-style)
+  const imageRef = useRef(null);
+  const handleMouseMove = (e) => {
+    if (!imageRef.current) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setLensPos({ x, y });
+    setShowLens(true);
+  };
+  const handleMouseLeave = () => setShowLens(false);
+
   if (loading) return <div className="text-center mt-10">Loading...</div>;
   if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
 
@@ -190,6 +204,7 @@ export default function SingleProduct() {
                 onTouchCancel={onDragEnd}
               >
                 <img
+                  ref={imageRef}
                   src={getImageSrc(product)}
                   alt={product.name}
                   onError={(e) => (e.target.src = "/default-placeholder.png")}
@@ -200,7 +215,25 @@ export default function SingleProduct() {
                     userSelect: "none",
                   }}
                   draggable={false}
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={() => setShowLens(true)}
+                  onMouseLeave={handleMouseLeave}
                 />
+                {showLens && (
+                  <div
+                    className="hidden lg:block absolute top-0 right-[-540px] w-[520px] h-[520px] bg-white border rounded-xl shadow-xl overflow-hidden"
+                  >
+                    <img
+                      src={getImageSrc(product)}
+                      alt="zoom"
+                      className="w-full h-full object-cover"
+                      style={{
+                        transform: `translate(${-Math.max(lensPos.x * 2 - 260, 0)}px, ${-Math.max(lensPos.y * 2 - 260, 0)}px) scale(2)`,
+                        transformOrigin: "top left",
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Zoom Controls */}

@@ -9,3 +9,17 @@
   margin-top:-17px;
 
 }
+
+/* Global font setup to match casadeplata.com */
+html, body, #root {
+  font-family: 'Lato', 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, .heading, .title {
+  font-family: 'Montserrat', 'Lato', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Elegant, readable heading weights */
+h1, .h1 { font-weight: 800; line-height: 1.2; }
+h2, .h2 { font-weight: 700; line-height: 1.25; }
+h3, .h3 { font-weight: 600; line-height: 1.3; }

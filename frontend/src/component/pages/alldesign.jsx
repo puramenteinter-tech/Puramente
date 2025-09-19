@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
 import BaseURL from "../../baseurl";
 import { useCart } from "../newcomponent/cartcontext";
+import { Isauthanticate } from "../authantication/isauthanticat";
 
 AOS.init();
 
@@ -15,6 +16,7 @@ const AllDesigns = () => {
   const { addToCart, updateQuantity, removeFromCart } = useCart();
   const [addedProducts, setAddedProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
+  const navigate = useNavigate();
 
   // ✅ Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,6 +98,17 @@ const AllDesigns = () => {
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
   const totalPages = Math.ceil(products.length / productsPerPage);
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber > 1 && !Isauthanticate()) {
+      navigate("/login", { replace: true, state: { from: window.location.pathname } });
+      return;
+    }
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <div
@@ -208,7 +221,7 @@ const AllDesigns = () => {
           <div className="flex justify-center items-center mt-10 gap-2">
             <button
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
+              onClick={() => goToPage(currentPage - 1)}
               className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
             >
               Prev
@@ -218,7 +231,7 @@ const AllDesigns = () => {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
+                onClick={() => goToPage(i + 1)}
                 className={`px-4 py-2 rounded-lg ${
                   currentPage === i + 1
                     ? "bg-cyan-800 text-white"
@@ -231,7 +244,7 @@ const AllDesigns = () => {
 
             <button
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
+              onClick={() => goToPage(currentPage + 1)}
               className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
             >
               Next
