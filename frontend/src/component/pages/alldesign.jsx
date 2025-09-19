@@ -85,7 +85,7 @@ const AllDesigns = () => {
 
   const getImageSrc = (product) => {
     if (product.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_400,h_400,q_auto,f_auto/${product.cloudinaryId}`;
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:good,f_auto/${product.cloudinaryId}`;
     }
     if (product.imageurl && product.imageurl.startsWith("http")) {
       return product.imageurl;
@@ -141,7 +141,7 @@ const AllDesigns = () => {
                 data-aos="zoom-in"
                 data-aos-duration="500"
               >
-                <div className="relative w-full h-36">
+                <div className="relative w-full h-80">
                   <Link to={`/singleproduct/${product._id}`}>
                     <img
                       src={getImageSrc(product)}

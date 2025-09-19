@@ -8,11 +8,20 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
+  const computeImageUrl = (it) => {
+    if (it?.imageUrl && typeof it.imageUrl === "string") return it.imageUrl;
+    if (it?.imageurl && typeof it.imageurl === "string") return it.imageurl;
+    if (it?.cloudinaryId) {
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_400,h_400,q_auto:good,f_auto/${it.cloudinaryId}`;
+    }
+    return "";
+  };
+
   // ✅ Login ke baad backend se cart set karne ke liye helper
   const normalizeFromServer = (items = []) => {
     return items.map((it) => {
       const productId = (it.productId && it.productId.toString) ? it.productId.toString() : (it.productId || it._id || it.id);
-      const imageUrl = it.imageUrl || it.imageurl || "";
+      const imageUrl = computeImageUrl(it);
       return {
         _id: productId,
         name: it.name,
@@ -26,7 +35,7 @@ export const CartProvider = ({ children }) => {
 
   const normalizeLocal = (items = []) => {
     return items.map((it) => {
-      const imageUrl = it.imageUrl || it.imageurl || "";
+      const imageUrl = computeImageUrl(it);
       return {
         ...it,
         _id: it._id || it.id || it.productId || it.product_id,
@@ -97,22 +106,23 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (product) => {
     const qty = product.quantity || 1;
     const existingItem = cartItems.find((item) => item._id === product._id);
+    const resolvedImageUrl = computeImageUrl(product);
     let updatedCart;
 
     if (existingItem) {
       updatedCart = cartItems.map((item) =>
         item._id === product._id
-          ? { ...item, quantity: Math.max(1, item.quantity + qty) }
+          ? { ...item, quantity: Math.max(1, item.quantity + qty), imageUrl: item.imageUrl || resolvedImageUrl, imageurl: item.imageurl || resolvedImageUrl }
           : item
       );
     } else {
-      updatedCart = [...cartItems, { ...product, quantity: qty }];
+      updatedCart = [...cartItems, { ...product, quantity: qty, imageUrl: resolvedImageUrl, imageurl: resolvedImageUrl }];
     }
 
     setCartItems(updatedCart);
     await saveCartItem(existingItem
-      ? { ...existingItem, _id: existingItem._id, quantity: Math.max(1, existingItem.quantity + qty) }
-      : { ...product, _id: product._id || product.id, quantity: qty }
+      ? { ...existingItem, _id: existingItem._id, quantity: Math.max(1, existingItem.quantity + qty), imageUrl: existingItem.imageUrl || resolvedImageUrl, imageurl: existingItem.imageurl || resolvedImageUrl }
+      : { ...product, _id: product._id || product.id, quantity: qty, imageUrl: resolvedImageUrl, imageurl: resolvedImageUrl }
     );
 
     // ✅ Backend save
@@ -125,7 +135,7 @@ export const CartProvider = ({ children }) => {
         name: product.name,
         price: product.price || 0,
         quantity: qty,
-        imageUrl: product.imageUrl || product.imageurl
+        imageUrl: resolvedImageUrl
       }, { headers: { Authorization: `Bearer ${token}` } });
     }
   };
