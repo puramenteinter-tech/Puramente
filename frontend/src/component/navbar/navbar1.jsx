@@ -67,11 +67,10 @@ export default function Navbar1() {
   }, [mobileSearchTerm]);
 
   const getImageSrc = (product) => {
-    if (product.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_400,h_400,q_auto,f_auto/${product.cloudinaryId}`;
-    }
-    if (product.imageurl && product.imageurl.startsWith("http")) {
-      return product.imageurl;
+    if (product?.imageUrl) return product.imageUrl;
+    if (product?.imageurl) return product.imageurl;
+    if (product?.cloudinaryId) {
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_400,h_400,q_auto:good,f_auto/${product.cloudinaryId}`;
     }
     return "/default-placeholder.jpg";
   };

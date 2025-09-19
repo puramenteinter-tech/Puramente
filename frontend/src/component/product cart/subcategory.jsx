@@ -73,11 +73,10 @@ export default function SubCategoryPage() {
   };
 
   const getImageSrc = (product) => {
-    if (product.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_400,h_400,q_auto,f_auto/${product.cloudinaryId}`;
-    }
-    if (product.imageurl && product.imageurl.startsWith("http")) {
-      return product.imageurl;
+    if (product?.imageUrl) return product.imageUrl;
+    if (product?.imageurl) return product.imageurl;
+    if (product?.cloudinaryId) {
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:good,f_auto/${product.cloudinaryId}`;
     }
     return "/default-placeholder.jpg";
   };
@@ -170,7 +169,7 @@ export default function SubCategoryPage() {
                   className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 relative overflow-hidden"
                 >
                   <Link to={`/singleproduct/${product._id}`}>
-                    <div className="relative w-full h-64">
+                    <div className="relative w-full h-80">
                       <ProductImage product={product} />
                     </div>
                   </Link>

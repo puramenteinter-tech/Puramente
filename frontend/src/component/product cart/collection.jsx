@@ -26,11 +26,11 @@ export default function Collection() {
           {categories.map((item, index) => (
             <div
               key={index}
-              className="w-40 bg-white sm:w-48 m-2 md:w-56 lg:w-56 lg:m-2 h-auto flex flex-col items-center lg:p-4  shadow-lg rounded-lg"
+              className="w-44 bg-white sm:w-56 m-2 md:w-64 lg:w-64 lg:m-2 h-auto flex flex-col items-center lg:p-4  shadow-lg rounded-lg"
             >
               <Link to={`/category/${item.name}`}>
                 <img
-                  className="rounded-full w-32 sm:w-36 md:w-40 lg:w-44 h-32 sm:h-36 md:h-40 lg:h-44 object-cover"
+                  className="rounded-full w-36 sm:w-44 md:w-52 lg:w-56 h-36 sm:h-44 md:h-52 lg:h-56 object-cover"
                   src={item.img}
                   alt={item.name}
                 />
