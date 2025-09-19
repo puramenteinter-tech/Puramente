@@ -31,6 +31,21 @@ export default function Login2() {
       localStorage.setItem("role", response.data.user.role);
       localStorage.setItem("userId", response.data.user._id); // ✅ Save userId for cart
 
+      // ✅ Merge guest cart (local) into backend cart for this user
+      try {
+        const guestCartRaw = localStorage.getItem("cart");
+        const guestItems = guestCartRaw ? JSON.parse(guestCartRaw) : [];
+        if (guestItems.length) {
+          await axios.post(
+            `${BaseURL}/api/cart/merge`,
+            { userId: response.data.user._id, items: guestItems },
+            { headers: { Authorization: `Bearer ${response.data.token}` } }
+          );
+        }
+      } catch (mergeErr) {
+        console.warn("Cart merge failed:", mergeErr?.message || mergeErr);
+      }
+
       // ✅ Backend se cart fetch karo
       try {
         const cartRes = await axios.get(`${BaseURL}/api/cart/${response.data.user._id}`, {

@@ -17,6 +17,24 @@ export const CartProvider = ({ children }) => {
   // ✅ Mount pe local cart load
   useEffect(() => {
     async function fetchCart() {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      if (token && userId) {
+        // Logged-in: hydrate from backend
+        try {
+          const res = await axios.get(`${BaseURL}/api/cart/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const items = res.data?.items || [];
+          setCartItems(items);
+          localStorage.setItem("cart", JSON.stringify(items));
+          return;
+        } catch (_) {
+          // fallthrough to local
+        }
+      }
+
+      // Guest/local fallback
       const storedCart = localStorage.getItem("cart");
       if (storedCart && storedCart !== "[]") {
         setCartItems(JSON.parse(storedCart));
@@ -70,9 +88,9 @@ export const CartProvider = ({ children }) => {
         userId,
         productId: product._id,
         name: product.name,
-        price: product.price,
+        price: product.price || 0,
         quantity: qty,
-        imageUrl: product.imageUrl
+        imageUrl: product.imageUrl || product.imageurl
       }, { headers: { Authorization: `Bearer ${token}` } });
     }
   };
@@ -87,7 +105,27 @@ export const CartProvider = ({ children }) => {
     const updatedItem = updatedCart.find((item) => item._id === _id);
     if (updatedItem) await saveCartItem(updatedItem);
 
-    // Backend update logic yaha add kar sakte ho agar API bana ho
+    // ✅ Backend quantity sync when logged in
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+    if (userId && token) {
+      try {
+        await axios.put(
+          `${BaseURL}/api/cart/quantity`,
+          {
+            userId,
+            productId: _id,
+            quantity: newQuantity,
+            name: updatedItem?.name,
+            price: updatedItem?.price || 0,
+            imageUrl: updatedItem?.imageUrl || updatedItem?.imageurl,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (_) {
+        // ignore for now
+      }
+    }
   };
 
   const removeFromCart = async (_id) => {
