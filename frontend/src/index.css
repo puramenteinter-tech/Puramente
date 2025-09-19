@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@theme {
+  --color-background-sky: #90d4dd;
+  --color-regal-white: #ffffff;
+  --color-button-orange: #000;
+  --color-button-hover: oklch(0.609 0.126 221.723) 
+}
+.goog-te-gadget{
+  margin-top:-17px;
+
+}
