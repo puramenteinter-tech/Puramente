@@ -28,6 +28,12 @@ const ShowBlogs = () => {
     fetchBlogs();
   }, []);
 
+  const stripHtml = (html) => {
+    if (!html) return "";
+    const text = html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ");
+    return text.replace(/\s+/g, " ").trim();
+  };
+
   const handleViewMore = () => {
     setVisibleCount((prev) => prev + 8);
   };
@@ -76,26 +82,26 @@ const ShowBlogs = () => {
               key={blog._id}
               className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 flex flex-col"
             >
-              {blog.image && (
-                <img
-                  src={`${BaseURL}${blog.image}`}
-                  alt={blog.title}
-                  className="w-full h-40 object-cover rounded-md mb-4"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `${BaseURL}/placeholder-blog.jpg`;
-                  }}
-                />
-              )}
+              <img
+                src={blog.image ? `${BaseURL}${blog.image}` : "/journey.webp"}
+                alt={blog.title}
+                className="w-full h-40 object-cover rounded-md mb-4"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/journey.webp";
+                }}
+              />
               <div className="flex-grow">
                 <h3 className="text-lg font-semibold text-[#004f6e]">
                   {blog.title}
                 </h3>
                 <p className="text-sm text-gray-700 mt-2">
-                  {blog.excerpt ||
-                    (blog.content.length > 80
-                      ? blog.content.substring(0, 80) + "..."
-                      : blog.content)}
+                  {blog.excerpt && blog.excerpt.length > 0
+                    ? blog.excerpt
+                    : (() => {
+                        const text = stripHtml(blog.content);
+                        return text.length > 80 ? text.substring(0, 80) + "..." : text;
+                      })()}
                 </p>
               </div>
               <Link

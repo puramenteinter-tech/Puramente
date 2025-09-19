@@ -34,6 +34,7 @@ const AdminBlogList = () => {
       <table className="min-w-full bg-white rounded-xl shadow">
         <thead className="bg-[#004f6e] text-white">
           <tr>
+            <th className="py-3 px-4 text-left">Image</th>
             <th className="py-3 px-4 text-left">Title</th>
             <th className="py-3 px-4 text-left">Content</th>
             <th className="py-3 px-4 text-left">Date</th>
@@ -43,6 +44,17 @@ const AdminBlogList = () => {
         <tbody>
           {blogs.map((blog) => (
             <tr key={blog._id} className="border-t">
+              <td className="py-3 px-4">
+                <img
+                  src={blog.image ? `${BaseURL}${blog.image}` : "/journey.webp"}
+                  alt={blog.title}
+                  className="w-16 h-12 object-cover rounded"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/journey.webp";
+                  }}
+                />
+              </td>
               <td className="py-3 px-4">{blog.title}</td>
               <td className="py-3 px-4">
                 {blog.content.slice(0, 50)}...

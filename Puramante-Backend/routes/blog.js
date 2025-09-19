@@ -1,14 +1,24 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import Blog from "../model/Blog.js";
 
 const router = express.Router();
 
+// Resolve absolute uploads directory relative to backend root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Multer setup with file size limit (2MB)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -108,7 +118,13 @@ router.get("/:slug", async (req, res) => {
       });
     }
 
-    res.status(200).json({ blog });
+    // Provide simple related blogs (most recent 3 excluding current)
+    const relatedBlogs = await Blog.find({ _id: { $ne: blog._id } })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    res.status(200).json({ blog, relatedBlogs });
   } catch (error) {
     console.error("Error fetching blog:", error);
     res.status(500).json({ error: "Something went wrong" });

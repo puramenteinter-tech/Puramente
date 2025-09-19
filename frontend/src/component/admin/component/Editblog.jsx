@@ -10,6 +10,9 @@ const EditBlog = () => {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
+    excerpt: "",
+    metaTitle: "",
+    metaDescription: "",
     image: null,
   });
 
@@ -23,7 +26,14 @@ const EditBlog = () => {
         const res = await axios.get(`${BaseURL}/api/blogs`);
         const blog = res.data.blogs.find((b) => b._id === id);
         if (blog) {
-          setFormData({ title: blog.title, content: blog.content, image: null });
+          setFormData({ 
+            title: blog.title, 
+            content: blog.content, 
+            excerpt: blog.excerpt || "",
+            metaTitle: blog.metaTitle || "",
+            metaDescription: blog.metaDescription || "",
+            image: null 
+          });
           setCurrentImage(blog.image);
         }
       } catch (err) {
@@ -58,6 +68,9 @@ const EditBlog = () => {
       const data = new FormData();
       data.append("title", formData.title);
       data.append("content", formData.content);
+      data.append("excerpt", formData.excerpt);
+      data.append("metaTitle", formData.metaTitle);
+      data.append("metaDescription", formData.metaDescription);
       if (formData.image) {
         data.append("image", formData.image);
       }
@@ -104,6 +117,40 @@ const EditBlog = () => {
             onChange={handleChange}
             className="w-full border px-4 py-2 rounded h-40"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Excerpt</label>
+          <textarea
+            name="excerpt"
+            value={formData.excerpt}
+            onChange={handleChange}
+            className="w-full border px-4 py-2 rounded h-24"
+            maxLength={160}
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Meta Title</label>
+          <input
+            type="text"
+            name="metaTitle"
+            value={formData.metaTitle}
+            onChange={handleChange}
+            className="w-full border px-4 py-2 rounded"
+            maxLength={60}
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Meta Description</label>
+          <textarea
+            name="metaDescription"
+            value={formData.metaDescription}
+            onChange={handleChange}
+            className="w-full border px-4 py-2 rounded h-24"
+            maxLength={160}
           />
         </div>
 
