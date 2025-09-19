@@ -1,12 +1,29 @@
 // db.js
 export function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open("CartDB", 1);
+    // Bump version to 2 to migrate keyPath from "id" to "_id"
+    const request = indexedDB.open("CartDB", 2);
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains("cart")) {
-        db.createObjectStore("cart", { keyPath: "id" });
+        db.createObjectStore("cart", { keyPath: "_id" });
+      } else {
+        try {
+          const tx = event.target.transaction;
+          const store = tx.objectStore("cart");
+          if (store.keyPath !== "_id") {
+            // Migration path for existing store with old keyPath "id"
+            db.deleteObjectStore("cart");
+            db.createObjectStore("cart", { keyPath: "_id" });
+          }
+        } catch (_) {
+          // If transaction not available, fallback: recreate store
+          try {
+            db.deleteObjectStore("cart");
+            db.createObjectStore("cart", { keyPath: "_id" });
+          } catch (_) {}
+        }
       }
     };
 
