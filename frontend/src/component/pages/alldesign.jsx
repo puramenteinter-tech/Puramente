@@ -42,8 +42,8 @@ const AllDesigns = () => {
 
     fetchProducts();
 
-    // restore cart from sessionStorage
-    const savedCart = sessionStorage.getItem("cart");
+    // restore cart from localStorage (CartContext keeps it in sync)
+    const savedCart = localStorage.getItem("cart");
     const parsedCart = savedCart ? JSON.parse(savedCart) : [];
     setAddedProducts(parsedCart.map((item) => item._id));
 

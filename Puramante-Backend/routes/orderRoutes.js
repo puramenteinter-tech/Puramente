@@ -13,6 +13,10 @@ import { v2 as cloudinary } from 'cloudinary';
 import os from 'os';
 import { promises as fs } from 'fs';
 import fsSync from 'fs';
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -278,6 +282,18 @@ const generateExcelFile = async (orderData, filePath) => {
 };
 
 router.post("/submit-order", async (req, res) => {
+  // Auth required
+  try {
+    const authHeader = req.headers.authorization || "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+  } catch (err) {
+    return res.status(401).json({ success: false, error: "Invalid or expired token" });
+  }
   try {
     const { firstName, email, contactNumber, companyName, country, message, orderDetails } = req.body;
 

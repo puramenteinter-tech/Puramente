@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
 import BaseURL from "../../baseurl";
 import { useCart } from "../newcomponent/cartcontext";
+import { Isauthanticate } from "../authantication/isauthanticat";
 
 AOS.init();
 
@@ -16,14 +17,19 @@ const ProductCard = () => {
   const [addedProducts, setAddedProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const productsPerPage = 16;
   const productListRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get(`${BaseURL}/api/products`);
-        setProducts(response.data);
+        const response = await axios.get(`${BaseURL}/api/products/paginated?page=${currentPage}&limit=${productsPerPage}`);
+        setProducts(response.data.products || []);
+        setTotalPages(response.data.totalPages || 1);
+        setError(null);
       } catch (err) {
         setError("Failed to load products.");
       } finally {
@@ -33,7 +39,8 @@ const ProductCard = () => {
 
     fetchProducts();
 
-    const savedCart = sessionStorage.getItem("cart");
+    // Restore cart from localStorage (CartContext keeps it in sync)
+    const savedCart = localStorage.getItem("cart");
     const parsedCart = savedCart ? JSON.parse(savedCart) : [];
     setAddedProducts(parsedCart.map((item) => item._id));
 
@@ -42,7 +49,7 @@ const ProductCard = () => {
       initialQuantities[item._id] = item.quantity || 1;
     });
     setQuantities(initialQuantities);
-  }, []);
+  }, [currentPage]);
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -71,12 +78,13 @@ const ProductCard = () => {
     updateQuantity(_id, newQty);
   };
 
-  const totalPages = Math.ceil(products.length / productsPerPage);
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+  const currentProducts = products;
 
   const handlePageChange = (pageNumber) => {
+    if (pageNumber > 1 && !Isauthanticate()) {
+      navigate("/login", { replace: true, state: { from: "/shopall" } });
+      return;
+    }
     setCurrentPage(pageNumber);
     setTimeout(() => {
       productListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });

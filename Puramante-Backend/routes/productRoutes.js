@@ -143,6 +143,28 @@ router.get("/", async (req, res) => {
   }
 });
 
+// 🌐 Public paginated products
+router.get("/paginated", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 16;
+    const total = await Product.countDocuments();
+    const products = await Product.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 🔍 Search
 router.get("/product", async (req, res) => {
   try {
@@ -169,12 +191,68 @@ router.get("/category/:category", async (req, res) => {
   }
 });
 
+// 📁 Category paginated (with optional with/without gemstone filter)
+router.get("/category/:category/paginated", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 16;
+    const filter = (req.query.filter || "all").toLowerCase();
+
+    const query = { category: req.params.category };
+    if (filter === "with") {
+      query.subcategory = new RegExp("withgemstone", "i");
+    } else if (filter === "without") {
+      query.subcategory = new RegExp("withoutgemstone", "i");
+    }
+
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 📁 Subcategory filter
 router.get("/categorys/:category/subcategory/:subcategory", async (req, res) => {
   try {
     const { category, subcategory } = req.params;
     const products = await Product.find({ category, subcategory });
     res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 📁 Subcategory paginated
+router.get("/categorys/:category/subcategory/:subcategory/paginated", async (req, res) => {
+  try {
+    const { category, subcategory } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 16;
+
+    const query = { category, subcategory };
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

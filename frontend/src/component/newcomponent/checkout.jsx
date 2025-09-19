@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useCart } from "./cartcontext";
 import BaseURL from "../../baseurl";
 import { useNavigate } from "react-router-dom";
+import { Isauthanticate } from "../authantication/isauthanticat";
 import Select from "react-select";
 import { FlagIcon } from "react-flag-kit";
 
@@ -62,6 +63,12 @@ const Checkout = () => {
   });
 
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (!Isauthanticate()) {
+      navigate("/login", { replace: false, state: { from: "/cart" } });
+    }
+  }, []);
 
   // Form field handlers
   const handleChange = (e) => {
@@ -143,12 +150,14 @@ const Checkout = () => {
 
     console.log("Full Request Payload:", payload);
 
+   const token = localStorage.getItem("token");
    const response = await axios.post(
       `${BaseURL}/api/orders/submit-order`,
       payload,
       {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
       }
     );

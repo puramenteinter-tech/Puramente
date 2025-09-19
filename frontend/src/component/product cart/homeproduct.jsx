@@ -40,7 +40,7 @@ const ProductCard = () => {
 
     fetchProducts();
 
-    const savedCart = sessionStorage.getItem("cart");
+    const savedCart = localStorage.getItem("cart");
     const parsedCart = savedCart ? JSON.parse(savedCart) : [];
     setAddedProducts(parsedCart.map((item) => item._id));
 

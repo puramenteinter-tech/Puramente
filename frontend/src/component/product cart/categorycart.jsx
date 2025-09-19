@@ -1,20 +1,22 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import BaseURL from "../../baseurl";
 import { Link } from "react-router-dom";
 import { useCart } from "../newcomponent/cartcontext";
 import { Helmet } from "react-helmet-async";
+import { Isauthanticate } from "../authantication/isauthanticat";
 
 export default function CategoryPage() {
   const { category } = useParams();
-  const [allProducts, setAllProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [addedProducts, setAddedProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
   const productsPerPage = 16;
 
@@ -25,12 +27,11 @@ export default function CategoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${BaseURL}/api/products/category/${category}`);
-        const sortedProducts = response.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        const response = await axios.get(
+          `${BaseURL}/api/products/category/${category}/paginated?filter=${activeTab}&page=${currentPage}&limit=${productsPerPage}`
         );
-        setAllProducts(sortedProducts);
-        setFilteredProducts(sortedProducts);
+        setProducts(response.data.products || []);
+        setTotalPages(response.data.totalPages || 1);
       } catch (error) {
         console.error("Error fetching products:", error);
         setError("Failed to load products. Please try again.");
@@ -41,7 +42,7 @@ export default function CategoryPage() {
 
     fetchProducts();
 
-    const savedCart = sessionStorage.getItem("cart");
+    const savedCart = localStorage.getItem("cart");
     const parsedCart = savedCart ? JSON.parse(savedCart) : [];
     setAddedProducts(parsedCart.map((item) => item._id));
     const qtyMap = {};
@@ -49,22 +50,12 @@ export default function CategoryPage() {
       qtyMap[item._id] = item.quantity || 1;
     });
     setQuantities(qtyMap);
-  }, [category]);
+  }, [category, activeTab, currentPage]);
 
   useEffect(() => {
-    if (activeTab === "all") {
-      setFilteredProducts(allProducts);
-    } else if (activeTab === "with") {
-      setFilteredProducts(allProducts.filter(product => 
-        product.subcategory && product.subcategory.includes("withgemstone")
-      ));
-    } else if (activeTab === "without") {
-      setFilteredProducts(allProducts.filter(product => 
-        product.subcategory && product.subcategory.includes("withoutgemstone")
-      ));
-    }
-    setCurrentPage(1); // Reset to first page when changing tabs
-  }, [activeTab, allProducts]);
+    // Reset to first page when changing tabs or category
+    setCurrentPage(1);
+  }, [activeTab, category]);
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -104,12 +95,13 @@ export default function CategoryPage() {
     return "/default-placeholder.jpg";
   };
 
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const currentProducts = products;
 
   const goToPage = (pageNumber) => {
+    if (pageNumber > 1 && !Isauthanticate()) {
+      navigate("/login", { replace: false, state: { from: window.location.pathname } });
+      return;
+    }
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -163,11 +155,11 @@ export default function CategoryPage() {
       )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
-      {!loading && !error && filteredProducts.length === 0 && (
+      {!loading && !error && currentProducts.length === 0 && (
         <p className="text-center">No products found in this category.</p>
       )}
 
-      {!loading && !error && filteredProducts.length > 0 && (
+      {!loading && !error && currentProducts.length > 0 && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {currentProducts.map((product) => (

@@ -1,13 +1,15 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import BaseURL from "../../baseurl";
 import { Link } from "react-router-dom";
 import { useCart } from "../newcomponent/cartcontext";
 import { Helmet } from "react-helmet-async";
+import { Isauthanticate } from "../authantication/isauthanticat";
 
 export default function SubCategoryPage() {
   const { category, subcategory } = useParams();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +18,7 @@ export default function SubCategoryPage() {
   const { addToCart, removeFromCart, updateQuantity } = useCart();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 16;
 
   const title = `${subcategory} Pendants | Puramente Jewel`;
@@ -28,12 +31,10 @@ export default function SubCategoryPage() {
       setError(null);
       try {
         const response = await axios.get(
-          `${BaseURL}/api/products/categorys/${category}/subcategory/${subcategory}`
+          `${BaseURL}/api/products/categorys/${category}/subcategory/${subcategory}/paginated?page=${currentPage}&limit=${itemsPerPage}`
         );
-        const sorted = response.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setProducts(sorted);
+        setProducts(response.data.products || []);
+        setTotalPages(response.data.totalPages || 1);
       } catch (error) {
         setError("Failed to load products. Please try again.");
       } finally {
@@ -41,8 +42,7 @@ export default function SubCategoryPage() {
       }
     };
     fetchProducts();
-    setCurrentPage(1); // reset page on new subcategory
-  }, [category, subcategory]);
+  }, [category, subcategory, currentPage]);
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -115,10 +115,7 @@ export default function SubCategoryPage() {
   };
 
   // Pagination logic
-  const indexOfLastProduct = currentPage * itemsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const currentProducts = products;
 
   return (
     <>
@@ -257,7 +254,13 @@ export default function SubCategoryPage() {
                 {[...Array(totalPages)].map((_, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setCurrentPage(idx + 1)}
+                    onClick={() => {
+                      if (idx + 1 > 1 && !Isauthanticate()) {
+                        navigate("/login", { replace: false, state: { from: window.location.pathname } });
+                        return;
+                      }
+                      setCurrentPage(idx + 1);
+                    }}
                     className={`px-3 py-1 rounded ${
                       currentPage === idx + 1
                         ? "bg-cyan-800 text-white"
@@ -269,7 +272,13 @@ export default function SubCategoryPage() {
                 ))}
 
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() => {
+                    if (currentPage + 1 > 1 && !Isauthanticate()) {
+                      navigate("/login", { replace: false, state: { from: window.location.pathname } });
+                      return;
+                    }
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                  }}
                   className="px-3 py-1 text-white bg-cyan-600 hover:bg-cyan-700 rounded"
                   disabled={currentPage === totalPages}
                 >
