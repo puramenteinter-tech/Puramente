@@ -14,16 +14,16 @@ export default function SingleProduct() {
   const [quantity, setQuantity] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  // For panning:
+  // For panning and magnifier
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
   const [showMagnifier, setShowMagnifier] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0, inside: false });
 
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
-  const imgRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef(null);
+  const imageRef = useRef(null);
 
   const { id } = useParams();
   const { addToCart, cartItems, removeFromCart } = useCart();
@@ -47,26 +47,30 @@ export default function SingleProduct() {
   }, [id]);
 
   const getImageSrc = (product) => {
-    if (product.cloudinaryId) {
-      // Higher quality image with better resolution
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_1100,h_1100,q_auto:best,f_auto,dpr_auto/${product.cloudinaryId}`;
+    if (product?.cloudinaryId) {
+      // Highest quality with no size restrictions for best quality
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/q_auto:best,f_auto/${product.cloudinaryId}`;
     }
-    if (product.imageurl && product.imageurl.startsWith("http")) {
+    if (product?.imageurl && product.imageurl.startsWith("http")) {
       return product.imageurl;
     }
-    return "/default-placeholder.svg";
+    return "https://placehold.co/1200x1200?text=No+Image";
   };
 
   const handleAddToCart = () => {
+    if (!product) return;
     const productWithQty = { ...product, quantity };
     addToCart(productWithQty);
   };
 
   const handleRemoveFromCart = () => {
+    if (!product) return;
     removeFromCart(product._id);
   };
 
   const handleShare = () => {
+    if (!product) return;
+    
     if (navigator.share) {
       navigator.share({
         title: product.name,
@@ -76,7 +80,9 @@ export default function SingleProduct() {
       .then(() => console.log('Shared successfully'))
       .catch((error) => console.error('Error sharing:', error));
     } else {
-      alert('Your browser does not support the Share API. Please copy the URL manually.');
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => alert('Product link copied to clipboard!'))
+        .catch(() => alert('Please copy the URL manually: ' + window.location.href));
     }
   };
 
@@ -100,55 +106,65 @@ export default function SingleProduct() {
   };
 
   const clampOffset = (offset, zoom) => {
-    const containerSize = 500;
-    const imageSize = containerSize * zoom;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const containerWidth = rect.width;
+    const containerHeight = rect.height;
+    const imageWidth = containerWidth * zoom;
+    const imageHeight = containerHeight * zoom;
 
-    const maxOffset = (imageSize - containerSize) / 2;
+    const maxOffsetX = Math.max(0, (imageWidth - containerWidth) / 2);
+    const maxOffsetY = Math.max(0, (imageHeight - containerHeight) / 2);
 
-    let x = offset.x;
-    let y = offset.y;
-
-    if (x > maxOffset) x = maxOffset;
-    if (x < -maxOffset) x = -maxOffset;
-    if (y > maxOffset) y = maxOffset;
-    if (y < -maxOffset) y = -maxOffset;
+    let x = Math.max(Math.min(offset.x, maxOffsetX), -maxOffsetX);
+    let y = Math.max(Math.min(offset.y, maxOffsetY), -maxOffsetY);
 
     setOffset({ x, y });
   };
 
   const onDragStart = (e) => {
     e.preventDefault();
+    if (zoomLevel === 1) return;
+    
     dragging.current = true;
-    lastPos.current = {
-      x: e.clientX || (e.touches && e.touches[0].clientX),
-      y: e.clientY || (e.touches && e.touches[0].clientY),
-    };
+    setIsDragging(true);
+    setShowMagnifier(false);
+    
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    lastPos.current = { x: clientX, y: clientY };
   };
 
   const onDragMove = (e) => {
     if (!dragging.current || zoomLevel === 1) return;
 
-    const currentX = e.clientX || (e.touches && e.touches[0].clientX);
-    const currentY = e.clientY || (e.touches && e.touches[0].clientY);
-    if (currentX == null || currentY == null) return;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    if (clientX == null || clientY == null) return;
 
-    const deltaX = currentX - lastPos.current.x;
-    const deltaY = currentY - lastPos.current.y;
+    const deltaX = clientX - lastPos.current.x;
+    const deltaY = clientY - lastPos.current.y;
 
-    lastPos.current = { x: currentX, y: currentY };
+    lastPos.current = { x: clientX, y: clientY };
 
     setOffset(prev => {
       const newOffset = { x: prev.x + deltaX, y: prev.y + deltaY };
-      const containerSize = 500;
-      const imageSize = containerSize * zoomLevel;
-      const maxOffset = (imageSize - containerSize) / 2;
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return prev;
+      
+      const containerWidth = rect.width;
+      const containerHeight = rect.height;
+      const imageWidth = containerWidth * zoomLevel;
+      const imageHeight = containerHeight * zoomLevel;
 
-      let x = newOffset.x;
-      let y = newOffset.y;
-      if (x > maxOffset) x = maxOffset;
-      if (x < -maxOffset) x = -maxOffset;
-      if (y > maxOffset) y = maxOffset;
-      if (y < -maxOffset) y = -maxOffset;
+      const maxOffsetX = Math.max(0, (imageWidth - containerWidth) / 2);
+      const maxOffsetY = Math.max(0, (imageHeight - containerHeight) / 2);
+
+      let x = Math.max(Math.min(newOffset.x, maxOffsetX), -maxOffsetX);
+      let y = Math.max(Math.min(newOffset.y, maxOffsetY), -maxOffsetY);
 
       return { x, y };
     });
@@ -156,33 +172,43 @@ export default function SingleProduct() {
 
   const onDragEnd = () => {
     dragging.current = false;
+    setIsDragging(false);
   };
 
-  // Handle mouse move for hover zoom effect
+  // Handle mouse move for hover magnifier effect
   const handleMouseMove = (e) => {
-    if (zoomLevel !== 1) return;
+    if (!imageRef.current || zoomLevel !== 1 || dragging.current) {
+      setShowMagnifier(false);
+      return;
+    }
     
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    setCursorPosition({ x, y, inside: true });
-    setMagnifierPosition({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseEnter = () => {
-    setIsHovering(true);
-    setShowMagnifier(zoomLevel === 1);
+    // Check if mouse is inside image bounds
+    const inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
+    
+    if (inside) {
+      setCursorPosition({ 
+        x: (x / rect.width) * 100, 
+        y: (y / rect.height) * 100, 
+        inside: true 
+      });
+      setShowMagnifier(true);
+    } else {
+      setShowMagnifier(false);
+    }
   };
 
   const handleMouseLeave = () => {
-    setIsHovering(false);
     setShowMagnifier(false);
-    setCursorPosition({ x: 0, y: 0, inside: false });
+    setCursorPosition(prev => ({ ...prev, inside: false }));
   };
 
   if (loading) return <div className="text-center mt-10">Loading...</div>;
   if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
+  if (!product) return <div className="text-center text-red-500 mt-10">Product not found</div>;
 
   return (
     <>
@@ -197,109 +223,98 @@ export default function SingleProduct() {
 
       <div className="container mx-auto px-4 py-10">
         {product && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-            {/* Image Section - Larger for emphasis */}
-            <div className="w-full flex flex-col items-center gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            {/* Image Section - Wider (2/3 of screen) with perfect quality */}
+            <div className="lg:col-span-2 w-full flex flex-col items-center gap-4">
               <div
-                className="overflow-hidden rounded-xl shadow-lg border p-2 relative"
+                className="overflow-hidden rounded-xl shadow-lg border p-2 relative bg-gray-50"
                 style={{ 
                   width: '100%', 
-                  maxWidth: '640px', 
-                  height: '640px',
+                  height: '700px', // Increased height for better display
                   touchAction: "none", 
-                  cursor: zoomLevel > 1 ? "grab" : "zoom-in" 
+                  cursor: isDragging ? "grabbing" : (zoomLevel > 1 ? "grab" : "crosshair") 
                 }}
+                ref={containerRef}
                 onMouseDown={onDragStart}
                 onMouseMove={(e) => {
                   onDragMove(e);
-                  if (zoomLevel === 1) handleMouseMove(e);
+                  if (zoomLevel === 1 && !isDragging) handleMouseMove(e);
                 }}
                 onMouseUp={onDragEnd}
                 onMouseLeave={(e) => {
                   onDragEnd();
                   handleMouseLeave();
                 }}
-                onMouseEnter={handleMouseEnter}
                 onTouchStart={onDragStart}
                 onTouchMove={onDragMove}
                 onTouchEnd={onDragEnd}
                 onTouchCancel={onDragEnd}
               >
-                <img
-                  ref={imgRef}
-                  src={getImageSrc(product)}
-                  alt={product.name}
-                  onError={(e) => (e.target.src = "/default-placeholder.svg")}
-                  className="object-contain select-none w-full h-full"
-                  style={{
-                    transform: `scale(${zoomLevel}) translate(${offset.x / zoomLevel}px, ${offset.y / zoomLevel}px)`,
-                    transition: dragging.current ? "none" : "transform 0.3s ease",
-                    userSelect: "none",
-                  }}
-                  draggable={false}
-                  onMouseMove={handleMouseMove}
-                  onMouseEnter={() => setShowLens(true)}
-                  onMouseLeave={handleMouseLeave}
-                />
-                {showLens && (
-                  <div
-                    className="hidden lg:block absolute top-0 right-[-700px] w-[680px] h-[680px] bg-white border rounded-xl shadow-xl overflow-hidden"
+                {/* High Quality Image Container */}
+                <div className="w-full h-full flex items-center justify-center">
+                  <img
+                    ref={imageRef}
+                    src={getImageSrc(product)}
+                    alt={product.name}
+                    onError={(e) => { 
+                      e.currentTarget.onerror = null; 
+                      e.currentTarget.src = "https://placehold.co/1200x1200?text=No+Image"; 
+                    }}
+                    className="object-scale-down select-none max-w-full max-h-full"
+                    style={{
+                      transform: `scale(${zoomLevel}) translate(${offset.x}px, ${offset.y}px)`,
+                      transition: isDragging ? "none" : "transform 0.2s ease",
+                      userSelect: "none",
+                      WebkitUserSelect: "none",
+                      // Ensure image maintains its natural quality
+                      imageRendering: zoomLevel > 1 ? "high-quality" : "auto",
+                    }}
+                    draggable={false}
+                  />
+                </div>
+
+                {/* Magnifier for zoom level 1 */}
+                {showMagnifier && zoomLevel === 1 && cursorPosition.inside && (
+                  <div 
+                    className="absolute hidden lg:block overflow-hidden rounded-xl shadow-lg border-2 border-cyan-500 bg-white"
+                    style={{
+                      width: '250px',
+                      height: '250px',
+                      left: 'calc(100% + 20px)',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 20,
+                    }}
                   >
                     <img
                       src={getImageSrc(product)}
-                      alt="zoom"
+                      alt="Magnified view"
                       className="w-full h-full object-cover"
                       style={{
-                        transform: `translate(${-Math.max(lensPos.x * 2 - 340, 0)}px, ${-Math.max(lensPos.y * 2 - 340, 0)}px) scale(2)`,
-                        transformOrigin: "top left",
+                        transform: `scale(2.5)`,
+                        transformOrigin: `${cursorPosition.x}% ${cursorPosition.y}%`,
+                        imageRendering: "high-quality",
                       }}
                     />
                   </div>
                 )}
               </div>
 
-              {/* Zoomed preview container (appears on hover) */}
-              {showMagnifier && cursorPosition.inside && (
-                <div 
-                  className="absolute hidden lg:block overflow-hidden rounded-xl shadow-lg border bg-white"
-                  style={{
-                    width: '300px',
-                    height: '300px',
-                    left: `${magnifierPosition.x + 20}px`,
-                    top: `${magnifierPosition.y - 150}px`,
-                    zIndex: 20,
-                    transform: 'translate(0, 0)',
-                  }}
-                >
-                  <div 
-                    style={{
-                      width: '1000px',
-                      height: '1000px',
-                      backgroundImage: `url(${getImageSrc(product)})`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: `${cursorPosition.x}% ${cursorPosition.y}%`,
-                      backgroundSize: '200%',
-                      position: 'absolute',
-                      left: `-${cursorPosition.x * 8}px`,
-                      top: `-${cursorPosition.y * 8}px`,
-                    }}
-                  />
-                </div>
-              )}
-
               {/* Zoom Controls */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-lg">
                 <button
                   onClick={decreaseZoom}
-                  className="bg-cyan-600 text-white px-3 py-2 rounded-full hover:bg-cyan-500 transition"
+                  className="bg-cyan-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={zoomLevel <= 1}
                 >
                   <ZoomOut size={18} />
                 </button>
-                <span className="font-semibold text-cyan-800">Zoom: {zoomLevel.toFixed(2)}x</span>
+                <span className="font-semibold text-cyan-800 min-w-[100px] text-center">
+                  Zoom: {zoomLevel.toFixed(1)}x
+                </span>
                 <button
                   onClick={increaseZoom}
-                  className="bg-cyan-600 text-white px-3 py-2 rounded-full hover:bg-cyan-500 transition"
+                  className="bg-cyan-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={zoomLevel >= 3}
                 >
                   <ZoomIn size={18} />
@@ -307,43 +322,59 @@ export default function SingleProduct() {
               </div>
             </div>
 
-            {/* Details Section (compact) */}
-            <div className="space-y-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-cyan-800 line-clamp-2">{product.name}</h1>
-              <p className="text-cyan-700 font-medium">
-                Design Code: <span className="font-semibold">{product.code}</span>
-              </p>
+            {/* Product Details Section - Narrower (1/3 of screen) */}
+            <div className="lg:col-span-1 space-y-4 bg-white p-6 rounded-xl shadow-lg border h-fit sticky top-4">
+              <h1 className="text-2xl font-bold text-cyan-800 leading-tight">{product.name}</h1>
+              
+              <div className="space-y-2">
+                <p className="text-cyan-700 font-medium">
+                  Design Code: <span className="font-semibold">{product.code || "N/A"}</span>
+                </p>
 
-              {/* Compact Description */}
+                {product.category && (
+                  <p className="text-cyan-700 font-medium">
+                    Category: <span className="font-semibold">{product.category}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Description - Compact */}
               {product.description && (
                 <div className="mt-4">
-                  <p className="text-cyan-900 font-bold text-lg">Description:</p>
-                  <p className="text-gray-700 line-clamp-2">
+                  <p className="text-cyan-900 font-bold text-lg mb-2">Description:</p>
+                  <p className="text-gray-700 text-sm leading-relaxed">
                     {product.description}
                   </p>
                 </div>
               )}
 
               {/* Quantity Selector */}
-              <div className="flex items-center gap-3 mt-6">
-                <button
-                  className="bg-cyan-600 text-white px-3 py-1 rounded-full"
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                >-</button>
-                <input
-                  type="number"
-                  value={quantity}
-                  min={1}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (!isNaN(val) && val > 0) setQuantity(val);
-                  }}
-                  className="w-16 text-center border border-cyan-300 rounded-md text-cyan-800 font-semibold"
-                />
-                <button
-                  className="bg-cyan-600 text-white px-3 py-1 rounded-full"
-                  onClick={() => setQuantity(q => q + 1)}
-                >+</button>
+              <div className="flex items-center justify-between mt-6 p-3 bg-gray-50 rounded-lg">
+                <span className="text-cyan-800 font-semibold">Quantity:</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    min={1}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val) && val > 0) setQuantity(val);
+                    }}
+                    className="w-16 text-center border border-cyan-300 rounded-md text-cyan-800 font-semibold py-1"
+                  />
+                  <button
+                    className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
+                    onClick={() => setQuantity(q => q + 1)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
               {/* Cart Buttons */}
@@ -351,14 +382,14 @@ export default function SingleProduct() {
                 {isInCart ? (
                   <button
                     onClick={handleRemoveFromCart}
-                    className="w-full bg-red-500 text-white font-semibold py-2 rounded-lg shadow hover:bg-red-600 transition"
+                    className="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow hover:bg-red-600 transition"
                   >
                     Remove from List
                   </button>
                 ) : (
                   <button
                     onClick={handleAddToCart}
-                    className="w-full bg-cyan-500 text-white font-semibold py-2 rounded-lg shadow hover:bg-cyan-600 transition"
+                    className="w-full bg-cyan-500 text-white font-semibold py-3 rounded-lg shadow hover:bg-cyan-600 transition"
                   >
                     Add to List
                   </button>
@@ -366,25 +397,25 @@ export default function SingleProduct() {
               </div>
 
               {/* Share & Contact */}
-              <div className="flex items-center gap-4 mt-6">
+              <div className="flex flex-col gap-3 mt-6">
                 <a
-                  href={`tel:+919314346148`}
-                  className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-lg shadow hover:bg-cyan-400"
+                  href="tel:+919314346148"
+                  className="flex items-center justify-center gap-2 bg-cyan-600 text-white px-4 py-3 rounded-lg shadow hover:bg-cyan-400 transition"
                 >
                   <Phone className="w-4 h-4" /> Call Us
                 </a>
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-lg shadow hover:bg-cyan-400"
+                  className="flex items-center justify-center gap-2 bg-cyan-600 text-white px-4 py-3 rounded-lg shadow hover:bg-cyan-400 transition"
                 >
-                  <Share2 className="w-4 h-4" /> Share
+                  <Share2 className="w-4 h-4" /> Share Product
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        <div className="mt-20">
+        <div className="mt-16">
           <WhoWeAre />
         </div>
       </div>
