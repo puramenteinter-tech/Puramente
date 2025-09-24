@@ -97,7 +97,7 @@ export default function TopProduct() {
   if (product?.imageUrl) return product.imageUrl;
   if (product?.imageurl) return product.imageurl;
   if (product?.cloudinaryId) {
-    return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:good,f_auto/${product.cloudinaryId}`;
+    return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_800,h_800,q_auto:good,f_auto,dpr_auto/${product.cloudinaryId}`;
   }
   return "/default-placeholder.jpg"; // 🔄 Optional fallback
 };
@@ -143,8 +143,7 @@ export default function TopProduct() {
                         <img
                           src={getImageSrc(product)} 
                         alt={`${product.name} – ${product.category || "jewellery"} by Puramente | costume jewellery manufacturers in India, indian jewellery wholesale suppliers`}
-
-                          className="w-full h-full object-contain transition-transform duration-700 hover:scale-110"
+                          className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                           loading="lazy"
                         />
                       </div>

@@ -7,10 +7,15 @@ import HelpSection from "../newcomponent/help";
 import Jewelryinfo from "../newcomponent/Jewelryinfo";
 import VideoSection from "../newcomponent/youtubevideo";
 import HomeProductCard from "../product cart/homeproduct";
+import VideoTestimonials from "../newcomponent/videotestimonials";
 
 import Faqsection from "../newcomponent/faq";
 import { Helmet } from "react-helmet-async";
+import { useLocation } from "react-router-dom";
 export default function Home() {
+  const location = useLocation();
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://puramentejewel.com";
+  const canonicalUrl = `${origin}${location.pathname || "/"}`;
   return (
      <>
       <Helmet>
@@ -23,7 +28,8 @@ export default function Home() {
           name="keywords"
           content="Jewelry Manufacturer, Jewelry Wholesaler, Puramente Jewel, Necklace Earrings Bracelets, Jewelry Europe"
         />
-        <link rel="canonical" href="https://puramentejewel.com/" />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:url" content={canonicalUrl} />
       </Helmet>
 
       {/* Existing home page content */}
@@ -44,6 +50,7 @@ export default function Home() {
       <Jewelryinfo />
       <InfoCards />
       <VideoSection />
+      <VideoTestimonials />
       <Faqsection/>
       <HelpSection />
     </div>

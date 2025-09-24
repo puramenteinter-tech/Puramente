@@ -94,7 +94,7 @@ const ProductCard = () => {
   if (product?.imageUrl) return product.imageUrl;
   if (product?.imageurl) return product.imageurl;
   if (product?.cloudinaryId) {
-    return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:good,f_auto/${product.cloudinaryId}`;
+    return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_900,h_900,q_auto:good,f_auto,dpr_auto/${product.cloudinaryId}`;
   }
   return "/default-placeholder.jpg"; // 🔄 Optional fallback
 };
@@ -120,12 +120,12 @@ const ProductCard = () => {
             data-aos="zoom-in"
             data-aos-duration="500"
           >
-            <div className="relative w-full h-80">
+            <div className="relative w-full h-80 sm:h-96">
               <Link to={`/singleproduct/${product._id}`}>
                 <img
                  src={getImageSrc(product)} 
                   alt={product.name}
-                  className="w-full h-full object-contain rounded-lg transform hover:scale-105 transition-all duration-500"
+                  className="w-full h-full object-cover rounded-lg transform hover:scale-105 transition-all duration-500"
                   loading="lazy"
                 />
               </Link>
