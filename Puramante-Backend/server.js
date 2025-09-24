@@ -15,6 +15,8 @@ import contactRoutes from "./routes/contactus.js";
 import wishListRoutes from "./routes/wishListRoutes.js";
 import blogRoutes from "./routes/blog.js";
 import cloudinaryRoutes from "./routes/cloudinary.js";
+import mongoose from "mongoose";
+import Blog from "./model/Blog.js";
 
 // Cloudinary config
 import { v2 as cloudinary } from 'cloudinary';
@@ -106,6 +108,70 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/wishlist", wishListRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/blogs", blogRoutes);
+
+// Robots.txt
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  const robots = [
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /dashboard',
+    'Disallow: /product-list',
+    'Disallow: /blog-list',
+    'Disallow: /admin/',
+    '',
+    `Sitemap: ${process.env.SITE_URL || 'https://puramentejewel.com'}/sitemap.xml`
+  ].join('\n');
+  res.send(robots);
+});
+
+// Dynamic sitemap.xml including blogs
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const siteUrl = process.env.SITE_URL || 'https://puramentejewel.com';
+    const urls = [
+      '',
+      '/blogs',
+      '/shopall',
+      '/aboutus',
+      '/contactus',
+      '/category/Rings',
+      '/category/Necklaces',
+      '/category/Bracelets'
+    ];
+
+    const blogDocs = await Blog.find({}, { slug: 1, updatedAt: 1, createdAt: 1 }).sort({ createdAt: -1 }).lean();
+
+    res.type('application/xml');
+    const xmlParts = [];
+    xmlParts.push('<?xml version="1.0" encoding="UTF-8"?>');
+    xmlParts.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    urls.forEach((p) => {
+      xmlParts.push('  <url>');
+      xmlParts.push(`    <loc>${siteUrl}${p}</loc>`);
+      xmlParts.push('    <changefreq>weekly</changefreq>');
+      xmlParts.push('    <priority>0.8</priority>');
+      xmlParts.push('  </url>');
+    });
+
+    blogDocs.forEach((b) => {
+      xmlParts.push('  <url>');
+      xmlParts.push(`    <loc>${siteUrl}/blogs/${b.slug}</loc>`);
+      if (b.updatedAt) {
+        xmlParts.push(`    <lastmod>${new Date(b.updatedAt).toISOString()}</lastmod>`);
+      }
+      xmlParts.push('    <changefreq>weekly</changefreq>');
+      xmlParts.push('    <priority>0.7</priority>');
+      xmlParts.push('  </url>');
+    });
+
+    xmlParts.push('</urlset>');
+    res.send(xmlParts.join('\n'));
+  } catch (err) {
+    console.error('sitemap generation failed', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () =>

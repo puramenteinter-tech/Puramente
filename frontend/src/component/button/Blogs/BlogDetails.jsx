@@ -86,6 +86,33 @@ const BlogDetails = () => {
         {blog.image && (
           <meta property="og:image" content={`${BaseURL}${blog.image}`} />
         )}
+        {(() => {
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          const url = `${origin}/blogs/${blog.slug}`;
+          const image = blog.image ? `${BaseURL}${blog.image}` : undefined;
+          return (
+            <>
+              <link rel="canonical" href={url} />
+              <meta property="og:url" content={url} />
+              <script type="application/ld+json">
+                {JSON.stringify({
+                  '@context': 'https://schema.org',
+                  '@type': 'BlogPosting',
+                  'headline': blog.metaTitle || blog.title,
+                  'image': image ? [image] : undefined,
+                  'datePublished': blog.createdAt,
+                  'dateModified': blog.updatedAt,
+                  'mainEntityOfPage': url,
+                  'description': blog.metaDescription || blog.excerpt,
+                  'author': {
+                    '@type': 'Organization',
+                    'name': 'Puramente International'
+                  }
+                })}
+              </script>
+            </>
+          );
+        })()}
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-4 py-8">

@@ -89,6 +89,30 @@ const Layout = ({ children }) => {
               />
               {(() => {
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
+                const pathWithOrWithoutLocale = location.pathname;
+                const segments = pathWithOrWithoutLocale.split("/").filter(Boolean);
+                const hasLocalePrefix = [
+                  "en-in",
+                  "en-gb",
+                  "en-us",
+                  "fr-fr",
+                  "en-uk",
+                  "en-ca",
+                  "en-ae",
+                ].includes(segments[0]);
+                const restPathOnly = `/${hasLocalePrefix ? segments.slice(1).join("/") : segments.join("/")}`;
+                const canonicalHref = hasLocalePrefix
+                  ? `${origin}/${segments[0]}${restPathOnly === "/" ? "" : restPathOnly}`
+                  : `${origin}${restPathOnly === "/" ? "" : restPathOnly}`;
+                return (
+                  <>
+                    <link rel="canonical" href={canonicalHref} />
+                    <meta property="og:url" content={canonicalHref} />
+                  </>
+                );
+              })()}
+              {(() => {
+                const origin = typeof window !== "undefined" ? window.location.origin : "";
                 const restPath = `/${hasLocale ? segments.slice(1).join("/") : segments.join("/")}`;
                 // code: URL path segment, hreflang: attribute value
                 const locales = [
