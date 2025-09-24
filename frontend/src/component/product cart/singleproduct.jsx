@@ -20,6 +20,8 @@ export default function SingleProduct() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef(null);
 
   const { id } = useParams();
   const { addToCart, cartItems, removeFromCart } = useCart();
@@ -50,7 +52,8 @@ export default function SingleProduct() {
     if (product.imageurl && product.imageurl.startsWith("http")) {
       return product.imageurl;
     }
-    return "/default-placeholder.jpg";
+    // Guaranteed remote placeholder (avoids missing local asset)
+    return "https://placehold.co/800x800?text=No+Image";
   };
 
   const handleAddToCart = () => {
@@ -96,7 +99,8 @@ export default function SingleProduct() {
   };
 
   const clampOffset = (offset, zoom) => {
-    const containerSize = 500; // Increased container size
+    const rect = containerRef.current?.getBoundingClientRect();
+    const containerSize = rect ? Math.min(rect.width, rect.height) : 640;
     const imageSize = containerSize * zoom;
 
     const maxOffset = (imageSize - containerSize) / 2;
@@ -115,6 +119,8 @@ export default function SingleProduct() {
   const onDragStart = (e) => {
     e.preventDefault();
     dragging.current = true;
+    setIsDragging(true);
+    setShowLens(false); // hide magnifier when dragging
     lastPos.current = {
       x: e.clientX || (e.touches && e.touches[0].clientX),
       y: e.clientY || (e.touches && e.touches[0].clientY),
@@ -135,7 +141,8 @@ export default function SingleProduct() {
 
     setOffset(prev => {
       const newOffset = { x: prev.x + deltaX, y: prev.y + deltaY };
-      const containerSize = 500;
+      const rect = containerRef.current?.getBoundingClientRect();
+      const containerSize = rect ? Math.min(rect.width, rect.height) : 640;
       const imageSize = containerSize * zoomLevel;
       const maxOffset = (imageSize - containerSize) / 2;
 
@@ -152,12 +159,17 @@ export default function SingleProduct() {
 
   const onDragEnd = () => {
     dragging.current = false;
+    setIsDragging(false);
   };
 
   // Hover magnifier (Flipkart-style)
   const imageRef = useRef(null);
   const handleMouseMove = (e) => {
     if (!imageRef.current) return;
+    if (zoomLevel !== 1 || dragging.current) {
+      setShowLens(false);
+      return;
+    }
     const rect = imageRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -192,12 +204,13 @@ export default function SingleProduct() {
                   maxWidth: '640px', 
                   height: '640px',
                   touchAction: "none", 
-                  cursor: zoomLevel > 1 ? "grab" : "default" 
+                  cursor: isDragging ? "grabbing" : (zoomLevel > 1 ? "grab" : "zoom-in") 
                 }}
+                ref={containerRef}
                 onMouseDown={onDragStart}
-                onMouseMove={onDragMove}
+                onMouseMove={(e) => { onDragMove(e); if (zoomLevel === 1 && !isDragging) handleMouseMove(e); }}
                 onMouseUp={onDragEnd}
-                onMouseLeave={onDragEnd}
+                onMouseLeave={(e) => { onDragEnd(); handleMouseLeave(); }}
                 onTouchStart={onDragStart}
                 onTouchMove={onDragMove}
                 onTouchEnd={onDragEnd}
@@ -207,7 +220,7 @@ export default function SingleProduct() {
                   ref={imageRef}
                   src={getImageSrc(product)}
                   alt={product.name}
-                  onError={(e) => (e.target.src = "/default-placeholder.png")}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://placehold.co/640x640?text=No+Image"; }}
                   className="object-contain select-none w-full h-full"
                   style={{
                     transform: `scale(${zoomLevel}) translate(${offset.x / zoomLevel}px, ${offset.y / zoomLevel}px)`,
@@ -215,11 +228,8 @@ export default function SingleProduct() {
                     userSelect: "none",
                   }}
                   draggable={false}
-                  onMouseMove={handleMouseMove}
-                  onMouseEnter={() => setShowLens(true)}
-                  onMouseLeave={handleMouseLeave}
                 />
-                {showLens && (
+                {showLens && zoomLevel === 1 && (
                   <div
                     className="hidden lg:block absolute top-0 right-[-700px] w-[680px] h-[680px] bg-white border rounded-xl shadow-xl overflow-hidden"
                   >
