@@ -120,12 +120,13 @@ const ProductCard = () => {
             data-aos="zoom-in"
             data-aos-duration="500"
           >
-            <div className="relative w-full h-80 sm:h-96">
+            {/* Image wrapper with fixed aspect ratio to keep cards equal height */}
+            <div className="relative w-full aspect-[4/5] sm:aspect-[4/5] overflow-hidden rounded-lg bg-white">
               <Link to={`/singleproduct/${product._id}`}>
                 <img
-                 src={getImageSrc(product)} 
+                  src={getImageSrc(product)}
                   alt={product.name}
-                  className="w-full h-full object-cover rounded-lg transform hover:scale-105 transition-all duration-500"
+                  className="absolute inset-0 w-full h-full object-contain sm:object-cover transform hover:scale-105 transition-all duration-500"
                   loading="lazy"
                 />
               </Link>
