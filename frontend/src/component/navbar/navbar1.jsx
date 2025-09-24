@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import BaseURL from "../../baseurl";
 import { Isauthanticate, Logout, IsAdmin } from "../authantication/isauthanticat";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { IoCloseSharp } from "react-icons/io5";
 import { FaCartShopping } from "react-icons/fa6";
 import { useCart } from "../newcomponent/cartcontext";
@@ -19,11 +19,27 @@ export default function Navbar1() {
   const [mobileFilteredProducts, setMobileFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showDesktopSearch, setShowDesktopSearch] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const { cartItems } = useCart();
 
   function togglesidemenu() {
     setsidemenu(!sidemenu);
   }
+
+  const toggleDesktopSearch = () => {
+    if (showDesktopSearch) {
+      setSearchTerm("");
+    }
+    setShowDesktopSearch(!showDesktopSearch);
+  };
+
+  const toggleMobileSearch = () => {
+    if (showMobileSearch) {
+      setMobileSearchTerm("");
+    }
+    setShowMobileSearch(!showMobileSearch);
+  };
 
   async function fetchProducts(query, isMobile = false) {
     if (!query.trim()) {
@@ -75,6 +91,16 @@ export default function Navbar1() {
     return "/default-placeholder.jpg";
   };
 
+  const handleDesktopResultClick = () => {
+    setSearchTerm("");
+    setShowDesktopSearch(false);
+  };
+
+  const handleMobileResultClick = () => {
+    setMobileSearchTerm("");
+    setShowMobileSearch(false);
+  };
+
   return (
     <div>
       {/* Desktop Navbar */}
@@ -87,45 +113,49 @@ export default function Navbar1() {
           />
         </Link>
 
-        {/* Search */}
-        <div className="w-[70%] relative">
-          <input
-            className="bg-white h-11 w-[70%] focus:outline-0 ml-8 p-4"
-            placeholder={t("searchPlaceholder")}
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className="bg-button-orange -ml-2 relative font-sans text-white h-11 w-36">
-            {t("SEARCH")}
+        {/* Search Icon - Moved closer to cart */}
+        <div className="flex-1 relative flex justify-end mr-4">
+          <button onClick={toggleDesktopSearch} className="p-2">
+            <Search className="h-6 w-6 text-gray-600 hover:text-gray-800" />
           </button>
 
-          {/* Search dropdown */}
-          {searchTerm.trim() !== "" && (
-            <div className="absolute bg-white shadow-lg w-[70%] ml-8 mt-2 max-h-60 overflow-y-auto z-10">
-              {loading ? (
-                <div className="p-2 text-gray-500 text-center">Loading...</div>
-              ) : error ? (
-                <div className="p-2 text-red-500 text-center">{error}</div>
-              ) : filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <Link
-                    key={product.id}
-                    to={`/singleproduct/${product._id}`}
-                    className="flex items-center p-2 hover:bg-gray-100 border-b"
-                    onClick={() => setSearchTerm("")}
-                  >
-                    <img
-                      src={getImageSrc(product)}
-                      alt={product.name}
-                      className="h-10 w-10 object-cover mr-4"
-                    />
-                    <span>{product.name}</span>
-                  </Link>
-                ))
-              ) : (
-                <div className="p-2 text-gray-500 text-center">
-                  No product found
+          {showDesktopSearch && (
+            <div className="absolute right-0 top-full bg-white shadow-lg rounded-lg z-10 w-96 flex flex-col mt-2">
+              <input
+                className="p-3 border-b w-full focus:outline-none"
+                placeholder={t("searchPlaceholder")}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                autoFocus
+              />
+              {searchTerm.trim() !== "" && (
+                <div className="max-h-60 overflow-y-auto">
+                  {loading ? (
+                    <div className="p-2 text-gray-500 text-center">Loading...</div>
+                  ) : error ? (
+                    <div className="p-2 text-red-500 text-center">{error}</div>
+                  ) : filteredProducts.length > 0 ? (
+                    filteredProducts.map((product) => (
+                      <Link
+                        key={product.id}
+                        to={`/singleproduct/${product._id}`}
+                        className="flex items-center p-2 hover:bg-gray-100 border-b"
+                        onClick={handleDesktopResultClick}
+                      >
+                        <img
+                          src={getImageSrc(product)}
+                          alt={product.name}
+                          className="h-10 w-10 object-cover mr-4"
+                        />
+                        <span>{product.name}</span>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="p-2 text-gray-500 text-center">
+                      No product found
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -178,15 +208,64 @@ export default function Navbar1() {
           />
         </Link>
 
-        {/* cartbutton */}
-        <Link to="/cart" className="relative flex items-center">
-          <FaCartShopping className="h-8 w-10 text-gray-800 hover:text-cyan-600 transition duration-300" />
-          {cartItems.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-              {cartItems.length}
-            </span>
-          )}
-        </Link>
+        {/* Search & Cart */}
+        <div className="flex items-center gap-4">
+          {/* Mobile Search Icon */}
+          <button onClick={toggleMobileSearch} className="relative">
+            <Search className="h-6 w-6 text-gray-800 hover:text-cyan-600 transition duration-300" />
+            {showMobileSearch && (
+              <div className="absolute top-8 right-0 bg-white shadow-lg rounded-lg z-20 flex flex-col w-64">
+                <input
+                  className="p-2 border-b w-full focus:outline-none rounded-t-lg"
+                  placeholder={t("searchPlaceholder")}
+                  type="text"
+                  value={mobileSearchTerm}
+                  onChange={(e) => setMobileSearchTerm(e.target.value)}
+                  autoFocus
+                />
+                {mobileSearchTerm.trim() !== "" && (
+                  <div className="max-h-60 overflow-y-auto">
+                    {loading ? (
+                      <div className="p-2 text-gray-500 text-center">Loading...</div>
+                    ) : error ? (
+                      <div className="p-2 text-red-500 text-center">{error}</div>
+                    ) : mobileFilteredProducts.length > 0 ? (
+                      mobileFilteredProducts.map((product) => (
+                        <Link
+                          key={product.id}
+                          to={`/singleproduct/${product._id}`}
+                          className="flex items-center p-2 hover:bg-gray-100 border-b"
+                          onClick={handleMobileResultClick}
+                        >
+                          <img
+                            src={getImageSrc(product)}
+                            alt={product.name}
+                            className="h-8 w-8 object-cover mr-3"
+                          />
+                          <span className="text-sm">{product.name}</span>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="p-2 text-gray-500 text-center">
+                        No product found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </button>
+
+          {/* Cart */}
+          <Link to="/cart" className="relative flex items-center">
+            <FaCartShopping className="h-8 w-10 text-gray-800 hover:text-cyan-600 transition duration-300" />
+            {cartItems.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {cartItems.length}
+              </span>
+            )}
+          </Link>
+        </div>
       </nav>
 
       {/* Sidebar Menu */}
@@ -205,56 +284,23 @@ export default function Navbar1() {
         </button>
         <div className="h-full flex flex-col items-start text-2xl text-button-orange gap-8 mt-32 ml-12 font-bold">
           {Isauthanticate() ? (
-            <Link onClick={Logout}>
-              <button className="bg-black text-white w-36 text-lg h-10">
-                Logout
-              </button>
-            </Link>
+            <button
+              onClick={() => {
+                Logout();
+                setsidemenu(false);
+              }}
+              className="bg-black text-white w-36 text-lg h-10"
+            >
+              Logout
+            </button>
           ) : (
-            <Link to="/login">
+            <Link to="/login" onClick={togglesidemenu}>
               <button className="bg-black text-white w-36 text-lg h-10">
                 Login
               </button>
             </Link>
           )}
 
-          {/* Mobile Search */}
-          <input
-            className="bg-white w-40 h-12 font-light focus:outline-none px-4"
-            placeholder="Search"
-            type="text"
-            value={mobileSearchTerm}
-            onChange={(e) => setMobileSearchTerm(e.target.value)}
-          />
-          {mobileSearchTerm.trim() !== "" && (
-            <div className="absolute bg-white shadow-lg top-64 left-5  w-60 mt-2 max-h-60 overflow-y-auto z-10">
-              {loading ? (
-                <div className="p-2 text-gray-500 text-center">Loading...</div>
-              ) : error ? (
-                <div className="p-2 text-red-500 text-center">{error}</div>
-              ) : mobileFilteredProducts.length > 0 ? (
-                mobileFilteredProducts.map((product) => (
-                  <Link
-                    key={product.id}
-                    to={`/singleproduct/${product._id}`}
-                    className="flex items-center p-2 hover:bg-gray-100 border-b"
-                    onClick={() => setMobileSearchTerm("")}
-                  >
-                    <img
-                      src={getImageSrc(product)}
-                      alt={product.name}
-                      className="h-10 w-10 object-cover mr-4"
-                    />
-                    <span>{product.name}</span>
-                  </Link>
-                ))
-              ) : (
-                <div className="p-2 text-gray-500 text-center">
-                  No product found
-                </div>
-              )}
-            </div>
-          )}
           <Link onClick={togglesidemenu} to="/">
             {t("Home")}
           </Link>
@@ -274,7 +320,7 @@ export default function Navbar1() {
             Privacy
           </Link>
           {IsAdmin() && (
-            <Link to="dashboard">
+            <Link to="dashboard" onClick={togglesidemenu}>
               <button className="bg-cyan-900 border-black text-lg w-44 h-10 text-white">
                 Dashboard
               </button>
