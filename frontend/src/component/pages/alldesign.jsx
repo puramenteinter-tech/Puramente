@@ -84,10 +84,11 @@ const AllDesigns = () => {
   };
 
   const getImageSrc = (product) => {
-    if (product.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:good,f_auto/${product.cloudinaryId}`;
+    if (product?.cloudinaryId) {
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_400,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
     }
-    if (product.imageurl && product.imageurl.startsWith("http")) {
+    if (product?.imageUrl) return product.imageUrl;
+    if (product?.imageurl && product.imageurl.startsWith("http")) {
       return product.imageurl;
     }
     return "/default-placeholder.jpg";
@@ -112,117 +113,132 @@ const AllDesigns = () => {
 
   return (
     <div
-      data-aos="fade-up"
+      data-aos="fade-down"
       data-aos-duration="600"
-      className="py-12 px-4 sm:px-6 lg:px-12 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 min-h-screen"
+      className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 min-h-screen"
     >
-      <div className="w-full text-center mb-12">
-        <h1 className="text-4xl font-extrabold text-cyan-600 tracking-tight">
+      <div className="w-full text-center mb-10">
+        <h1 className="text-3xl font-extrabold text-cyan-600 tracking-tight">
           All Jewellery Designs
         </h1>
-        <p className="text-lg font-medium text-cyan-800 mt-2 italic max-w-2xl mx-auto">
+        <p className="text-md font-medium text-cyan-800 mt-2 italic max-w-2xl mx-auto">
           Browse our complete jewellery collection crafted with precision and passion.
         </p>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-32">
-          <div className="w-12 h-12 border-4 border-cyan-600 border-dashed rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-cyan-600 border-dashed rounded-full animate-spin"></div>
         </div>
       ) : error ? (
         <p className="text-center text-red-500">{error}</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {currentProducts.map((product) => (
               <div
                 key={product._id}
-                className="bg-white p-6 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative overflow-hidden"
+                className="bg-white rounded-xl shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden flex flex-col h-full border border-cyan-100"
                 data-aos="zoom-in"
                 data-aos-duration="500"
               >
-                <div className="relative w-full h-80">
-                  <Link to={`/singleproduct/${product._id}`}>
+                {/* Image Section - Full Width & Height */}
+                <div className="relative w-full h-56 p-0 bg-gradient-to-br from-cyan-50 to-white">
+                  <Link to={`/singleproduct/${product._id}`} className="block w-full h-full">
                     <img
                       src={getImageSrc(product)}
-                      alt={`${product.name} – ${product.category}`}
-                      className="w-full h-full object-contain rounded-lg transform hover:scale-105 transition-all duration-500"
+                      alt={`${product.name} – ${product.category} by Puramente | fashion jewellery wholesale suppliers in India`}
+                      className="w-full h-full object-cover rounded-t-xl transition-all duration-300 hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = "/default-placeholder.jpg";
+                      }}
                     />
                   </Link>
-                  <span className="absolute top-3 left-3 bg-cyan-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md animate-pulse">
+                  <span className="absolute top-3 left-3 bg-gradient-to-r from-cyan-600 to-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
                     New
                   </span>
                 </div>
 
-                <div className="mt-6 text-center">
-                  <Link to={`/singleproduct/${product._id}`}>
-                    <h3 className="text-lg line-clamp-1 font-bold text-cyan-800 tracking-tight">
+                {/* Content Section */}
+                <div className="flex flex-col flex-grow p-4">
+                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-3">
+                    <h3 className="text-lg font-bold text-cyan-900 tracking-tight leading-tight mb-2 line-clamp-2 min-h-[2.5rem]">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-cyan-600 mt-1">{product.category}</p>
-                    <p className="text-xs text-cyan-500 mt-2 font-medium">
-                      Design Code: {product.code}
-                    </p>
+                    
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded">
+                        {product.category}
+                      </span>
+                      <span className="text-xs text-cyan-600 font-mono bg-white px-2 py-1 rounded border">
+                        SKU: {product.code || "N/A"}
+                      </span>
+                    </div>
                   </Link>
 
-                  {addedProducts.includes(product._id) ? (
-                    <>
-                      <div className="mt-4 flex justify-center items-center gap-2">
+                  {/* Cart Actions */}
+                  <div className="mt-auto pt-3 border-t border-cyan-100">
+                    {addedProducts.includes(product._id) ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-cyan-700">Qty:</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => decrementQuantity(product._id)}
+                              className="bg-cyan-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              value={quantities[product._id] || 1}
+                              min="1"
+                              onChange={(e) => {
+                                const newQty = Math.max(Number(e.target.value), 1);
+                                setQuantities((prev) => ({
+                                  ...prev,
+                                  [product._id]: newQty,
+                                }));
+                                updateQuantity(product._id, newQty);
+                              }}
+                              className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+                            />
+                            <button
+                              onClick={() => incrementQuantity(product._id)}
+                              className="bg-cyan-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                         <button
-                          onClick={() => decrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white px-3 py-1 rounded-full shadow hover:bg-cyan-700"
+                          onClick={() => handleRemoveFromCart(product._id)}
+                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
                         >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          value={quantities[product._id] || 1}
-                          min="1"
-                          onChange={(e) => {
-                            const newQty = Math.max(Number(e.target.value), 1);
-                            setQuantities((prev) => ({
-                              ...prev,
-                              [product._id]: newQty,
-                            }));
-                            updateQuantity(product._id, newQty);
-                          }}
-                          className="w-16 text-center py-1 px-2 border border-cyan-600 rounded-md"
-                        />
-                        <button
-                          onClick={() => incrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white px-3 py-1 rounded-full shadow hover:bg-cyan-700"
-                        >
-                          +
+                          Remove from List
                         </button>
                       </div>
+                    ) : (
                       <button
-                        onClick={() => handleRemoveFromCart(product._id)}
-                        className="mt-2 w-full bg-cyan-500 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
+                        onClick={() => handleAddToCart(product)}
+                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
                       >
-                        Remove Item
+                        Add To Enquiry List
                       </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="mt-4 w-full bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
-                    >
-                      Add To List
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
-
-                <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-100 rounded-full -mr-12 -mt-12 opacity-50" />
               </div>
             ))}
           </div>
 
           {/* ✅ Pagination Controls */}
-          <div className="flex justify-center items-center mt-10 gap-2">
+          <div className="flex justify-center items-center mt-10 gap-2 flex-wrap">
             <button
               disabled={currentPage === 1}
               onClick={() => goToPage(currentPage - 1)}
-              className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg disabled:opacity-50 font-bold shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
             >
               Prev
             </button>
@@ -232,10 +248,10 @@ const AllDesigns = () => {
               <button
                 key={i + 1}
                 onClick={() => goToPage(i + 1)}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-4 py-2 rounded-lg font-bold shadow transition-all ${
                   currentPage === i + 1
-                    ? "bg-cyan-800 text-white"
-                    : "bg-cyan-200 text-cyan-800 hover:bg-cyan-400"
+                    ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white"
+                    : "bg-gradient-to-r from-cyan-200 to-teal-200 text-cyan-800 hover:from-cyan-300 hover:to-teal-300"
                 }`}
               >
                 {i + 1}
@@ -245,7 +261,7 @@ const AllDesigns = () => {
             <button
               disabled={currentPage === totalPages}
               onClick={() => goToPage(currentPage + 1)}
-              className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg disabled:opacity-50 font-bold shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
             >
               Next
             </button>

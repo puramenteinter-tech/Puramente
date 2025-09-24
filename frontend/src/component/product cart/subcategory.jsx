@@ -35,6 +35,17 @@ export default function SubCategoryPage() {
         );
         setProducts(response.data.products || []);
         setTotalPages(response.data.totalPages || 1);
+        
+        // Restore cart from localStorage
+        const savedCart = localStorage.getItem("cart");
+        const parsedCart = savedCart ? JSON.parse(savedCart) : [];
+        setAddedProducts(parsedCart.map((item) => item._id));
+
+        const initialQuantities = {};
+        parsedCart.forEach((item) => {
+          initialQuantities[item._id] = item.quantity || 1;
+        });
+        setQuantities(initialQuantities);
       } catch (error) {
         setError("Failed to load products. Please try again.");
       } finally {
@@ -76,34 +87,34 @@ export default function SubCategoryPage() {
     if (product?.imageUrl) return product.imageUrl;
     if (product?.imageurl) return product.imageurl;
     if (product?.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:good,f_auto/${product.cloudinaryId}`;
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
     }
     return "/default-placeholder.jpg";
   };
 
   const ProductImage = ({ product }) => {
     const [imgSrc, setImgSrc] = useState(getImageSrc(product));
-    const [loading, setLoading] = useState(true);
+    const [imgLoading, setImgLoading] = useState(true);
 
     const handleError = () => {
-      setImgSrc("/default-placeholder.png");
-      setLoading(false);
+      setImgSrc("/default-placeholder.jpg");
+      setImgLoading(false);
     };
 
     const handleLoad = () => {
-      setLoading(false);
+      setImgLoading(false);
     };
 
     return (
-      <div className="relative w-full h-36">
-        {loading && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg"></div>
+      <div className="relative w-full h-56 p-0 bg-gradient-to-br from-cyan-50 to-white">
+        {imgLoading && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-t-xl"></div>
         )}
         <img
           src={imgSrc}
-          alt={product.name}
-          className={`w-full object-contain h-full rounded-lg ${
-            loading ? "opacity-0" : "opacity-100"
+          alt={`${product.name} – ${product.category} by Puramente | fashion jewellery wholesale suppliers in India`}
+          className={`w-full h-full object-cover rounded-t-xl transition-all duration-300 hover:scale-105 ${
+            imgLoading ? "opacity-0" : "opacity-100"
           }`}
           onError={handleError}
           onLoad={handleLoad}
@@ -113,7 +124,6 @@ export default function SubCategoryPage() {
     );
   };
 
-  // Pagination logic
   const currentProducts = products;
 
   return (
@@ -128,29 +138,22 @@ export default function SubCategoryPage() {
         />
       </Helmet>
 
-      <h1 className="text-center text-4xl font-bold text-gray-800 mt-8 mb-6 capitalize">
-    
-      </h1>
-
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center capitalize mb-6">
-          {category} -{" "}
-          {subcategory
-            .replace("withgemstone", "with gemstone")
-            .replace("withoutgemstone", "without gemstone")}
-        </h1>
+      <div className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 min-h-screen">
+        <div className="w-full text-center mb-10">
+          <h1 className="text-3xl font-extrabold text-cyan-600 tracking-tight capitalize">
+            {category} - {subcategory.replace("withgemstone", "with gemstone").replace("withoutgemstone", "without gemstone")}
+          </h1>
+          <p className="text-md font-medium text-cyan-800 mt-2 italic max-w-2xl mx-auto">
+            "Exquisite {subcategory} {category} collection from the best jewellery manufacturers in India."
+          </p>
+        </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-600"></div>
-              <p className="mt-2 text-gray-600">Loading products...</p>
-            </div>
+          <div className="flex justify-center items-center h-32">
+            <div className="w-10 h-10 border-4 border-cyan-600 border-dashed rounded-full animate-spin"></div>
           </div>
         ) : error ? (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-            <p>{error}</p>
-          </div>
+          <p className="text-center text-red-500">{error}</p>
         ) : currentProducts.length === 0 ? (
           <div className="flex justify-center items-center h-64">
             <div className="text-center text-gray-500">
@@ -162,94 +165,108 @@ export default function SubCategoryPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {currentProducts.map((product) => (
                 <div
                   key={product._id}
-                  className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 relative overflow-hidden"
+                  className="bg-white rounded-xl shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden flex flex-col h-full border border-cyan-100"
                 >
-                  <Link to={`/singleproduct/${product._id}`}>
-                    <div className="relative w-full h-80">
-                      <ProductImage product={product} />
-                    </div>
+                  {/* Image Section */}
+                  <Link to={`/singleproduct/${product._id}`} className="block w-full">
+                    <ProductImage product={product} />
                   </Link>
+                  <span className="absolute top-3 left-3 bg-gradient-to-r from-cyan-600 to-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+                    New
+                  </span>
 
-                  <div className="mt-6 text-center">
-                    <h3 className="text-base font-semibold text-cyan-800 line-clamp-1 tracking-tight">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-cyan-600 mt-1">{product.category}</p>
-                    <p className="text-xs text-cyan-500 mt-2 font-medium">
-                      Design Code:{" "}
-                      <span className="font-semibold">{product.code}</span>
-                    </p>
+                  {/* Content Section */}
+                  <div className="flex flex-col flex-grow p-4">
+                    <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-3">
+                      <h3 className="text-sm font-bold text-cyan-900 tracking-tight leading-tight mb-2 line-clamp-2 min-h-[2.5rem]">
+                        {product.name}
+                      </h3>
+                      
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded">
+                          {product.category}
+                        </span>
+                        <span className="text-xs text-cyan-600 font-mono bg-white px-1 py-0.5 rounded border">
+                          SKU: {product.code || "N/A"}
+                        </span>
+                      </div>
+                    </Link>
 
-                    {addedProducts.includes(product._id) ? (
-                      <>
-                        <div className="mt-4 flex justify-center items-center gap-2">
+                    {/* Cart Actions */}
+                    <div className="mt-auto pt-3 border-t border-cyan-100">
+                      {addedProducts.includes(product._id) ? (
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-semibold text-cyan-700">Qty:</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => decrementQuantity(product._id)}
+                                className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                value={quantities[product._id] || 1}
+                                min="1"
+                                onChange={(e) => {
+                                  const newQty = Math.max(Number(e.target.value), 1);
+                                  setQuantities((prev) => ({
+                                    ...prev,
+                                    [product._id]: newQty,
+                                  }));
+                                  updateQuantity(product._id, newQty);
+                                }}
+                                className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+                              />
+                              <button
+                                onClick={() => incrementQuantity(product._id)}
+                                className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
                           <button
-                            onClick={() => decrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white px-2 py-1 text-sm rounded-full shadow hover:bg-cyan-700"
+                            onClick={() => handleRemoveFromCart(product._id)}
+                            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
                           >
-                            -
-                          </button>
-
-                          <input
-                            type="number"
-                            min="1"
-                            value={quantities[product._id] || 1}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              if (!isNaN(val) && val >= 1) {
-                                setQuantities((prev) => ({
-                                  ...prev,
-                                  [product._id]: val,
-                                }));
-                                updateQuantity(product._id, val);
-                              }
-                            }}
-                            className="w-12 text-center border border-cyan-300 rounded-md text-cyan-800 font-semibold"
-                          />
-
-                          <button
-                            onClick={() => incrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white px-2 py-1 text-sm rounded-full shadow hover:bg-cyan-700"
-                          >
-                            +
+                            Remove from List
                           </button>
                         </div>
-
+                      ) : (
                         <button
-                          onClick={() => handleRemoveFromCart(product._id)}
-                        className="mt-2 w-full bg-cyan-500 text-white text-xs font-semibold py-1 px-3 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
+                          onClick={() => handleAddToCart(product)}
+                          className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
                         >
-                          Remove Item
+                          Add To Enquiry List
                         </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                      className="mt-4 w-full bg-cyan-500 text-white text-sm font-semibold py-1 px-3 rounded-lg shadow-md hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105"
-                      >
-                        Add To List
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
-
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-100 rounded-full -mr-12 -mt-12 opacity-50" />
                 </div>
               ))}
             </div>
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center mt-8 gap-2 flex-wrap">
+              <div className="flex justify-center items-center space-x-2 mt-12 flex-wrap gap-2">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  className="px-3 py-1 text-white bg-cyan-600 hover:bg-cyan-700 rounded"
+                  onClick={() => {
+                    if (currentPage - 1 > 1 && !Isauthanticate()) {
+                      navigate("/login", { replace: false, state: { from: window.location.pathname } });
+                      return;
+                    }
+                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
                   disabled={currentPage === 1}
                 >
-                  Prev
+                  Previous
                 </button>
 
                 {[...Array(totalPages)].map((_, idx) => (
@@ -262,10 +279,10 @@ export default function SubCategoryPage() {
                       }
                       setCurrentPage(idx + 1);
                     }}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === idx + 1
-                        ? "bg-cyan-800 text-white"
-                        : "bg-cyan-200 text-cyan-800 hover:bg-cyan-300"
+                    className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
+                      currentPage === idx + 1 
+                        ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white" 
+                        : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
                     }`}
                   >
                     {idx + 1}
@@ -280,7 +297,7 @@ export default function SubCategoryPage() {
                     }
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
                   }}
-                  className="px-3 py-1 text-white bg-cyan-600 hover:bg-cyan-700 rounded"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
                   disabled={currentPage === totalPages}
                 >
                   Next

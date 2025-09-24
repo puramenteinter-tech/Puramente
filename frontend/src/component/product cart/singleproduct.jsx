@@ -14,16 +14,22 @@ export default function SingleProduct() {
   const [quantity, setQuantity] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  // For panning and magnifier
+  // For panning and magnifier - Flipkart style
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [showMagnifier, setShowMagnifier] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0, inside: false });
+  const [cursorPosition, setCursorPosition] = useState({ 
+    x: 0, 
+    y: 0, 
+    inside: false 
+  });
+  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
 
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
   const imageRef = useRef(null);
+  const magnifierRef = useRef(null);
 
   const { id } = useParams();
   const { addToCart, cartItems, removeFromCart } = useCart();
@@ -48,7 +54,6 @@ export default function SingleProduct() {
 
   const getImageSrc = (product) => {
     if (product?.cloudinaryId) {
-      // Highest quality with no size restrictions for best quality
       return `https://res.cloudinary.com/ddtharbsi/image/upload/q_auto:best,f_auto/${product.cloudinaryId}`;
     }
     if (product?.imageurl && product.imageurl.startsWith("http")) {
@@ -175,7 +180,7 @@ export default function SingleProduct() {
     setIsDragging(false);
   };
 
-  // Handle mouse move for hover magnifier effect
+  // Flipkart style hover zoom effect
   const handleMouseMove = (e) => {
     if (!imageRef.current || zoomLevel !== 1 || dragging.current) {
       setShowMagnifier(false);
@@ -190,11 +195,28 @@ export default function SingleProduct() {
     const inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
     
     if (inside) {
+      // Calculate percentage position for magnifier
+      const percentX = (x / rect.width) * 100;
+      const percentY = (y / rect.height) * 100;
+      
       setCursorPosition({ 
-        x: (x / rect.width) * 100, 
-        y: (y / rect.height) * 100, 
+        x: percentX, 
+        y: percentY, 
         inside: true 
       });
+
+      // Calculate magnifier position (Flipkart style - right side)
+      if (magnifierRef.current) {
+        const magnifierRect = magnifierRef.current.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+        
+        // Position magnifier to the right of the image
+        setMagnifierPosition({
+          x: containerRect.right + 20,
+          y: containerRect.top
+        });
+      }
+      
       setShowMagnifier(true);
     } else {
       setShowMagnifier(false);
@@ -224,74 +246,91 @@ export default function SingleProduct() {
       <div className="container mx-auto px-4 py-10">
         {product && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Image Section - Wider (2/3 of screen) with perfect quality */}
+            {/* Image Section with Flipkart Style Zoom */}
             <div className="lg:col-span-2 w-full flex flex-col items-center gap-4">
-              <div
-                className="overflow-hidden rounded-xl shadow-lg border p-2 relative bg-gray-50"
-                style={{ 
-                  width: '100%', 
-                  height: '700px', // Increased height for better display
-                  touchAction: "none", 
-                  cursor: isDragging ? "grabbing" : (zoomLevel > 1 ? "grab" : "crosshair") 
-                }}
-                ref={containerRef}
-                onMouseDown={onDragStart}
-                onMouseMove={(e) => {
-                  onDragMove(e);
-                  if (zoomLevel === 1 && !isDragging) handleMouseMove(e);
-                }}
-                onMouseUp={onDragEnd}
-                onMouseLeave={(e) => {
-                  onDragEnd();
-                  handleMouseLeave();
-                }}
-                onTouchStart={onDragStart}
-                onTouchMove={onDragMove}
-                onTouchEnd={onDragEnd}
-                onTouchCancel={onDragEnd}
-              >
-                {/* High Quality Image Container */}
-                <div className="w-full h-full flex items-center justify-center">
-                  <img
-                    ref={imageRef}
-                    src={getImageSrc(product)}
-                    alt={product.name}
-                    onError={(e) => { 
-                      e.currentTarget.onerror = null; 
-                      e.currentTarget.src = "https://placehold.co/1200x1200?text=No+Image"; 
-                    }}
-                    className="object-scale-down select-none max-w-full max-h-full"
-                    style={{
-                      transform: `scale(${zoomLevel}) translate(${offset.x}px, ${offset.y}px)`,
-                      transition: isDragging ? "none" : "transform 0.2s ease",
-                      userSelect: "none",
-                      WebkitUserSelect: "none",
-                      // Ensure image maintains its natural quality
-                      imageRendering: zoomLevel > 1 ? "high-quality" : "auto",
-                    }}
-                    draggable={false}
-                  />
+              <div className="relative w-full">
+                <div
+                  className="overflow-hidden rounded-xl shadow-lg border p-2 relative bg-gray-50"
+                  style={{ 
+                    width: '100%', 
+                    height: '700px',
+                    touchAction: "none", 
+                    cursor: isDragging ? "grabbing" : (zoomLevel > 1 ? "grab" : "crosshair") 
+                  }}
+                  ref={containerRef}
+                  onMouseDown={onDragStart}
+                  onMouseMove={(e) => {
+                    onDragMove(e);
+                    if (zoomLevel === 1 && !isDragging) handleMouseMove(e);
+                  }}
+                  onMouseUp={onDragEnd}
+                  onMouseLeave={(e) => {
+                    onDragEnd();
+                    handleMouseLeave();
+                  }}
+                  onTouchStart={onDragStart}
+                  onTouchMove={onDragMove}
+                  onTouchEnd={onDragEnd}
+                  onTouchCancel={onDragEnd}
+                >
+                  {/* High Quality Image Container */}
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      ref={imageRef}
+                      src={getImageSrc(product)}
+                      alt={product.name}
+                      onError={(e) => { 
+                        e.currentTarget.onerror = null; 
+                        e.currentTarget.src = "https://placehold.co/1200x1200?text=No+Image"; 
+                      }}
+                      className="object-scale-down select-none max-w-full max-h-full"
+                      style={{
+                        transform: `scale(${zoomLevel}) translate(${offset.x}px, ${offset.y}px)`,
+                        transition: isDragging ? "none" : "transform 0.2s ease",
+                        userSelect: "none",
+                        WebkitUserSelect: "none",
+                        imageRendering: zoomLevel > 1 ? "high-quality" : "auto",
+                      }}
+                      draggable={false}
+                    />
+                  </div>
+
+                  {/* Zoom Lens (like Flipkart) */}
+                  {showMagnifier && zoomLevel === 1 && cursorPosition.inside && (
+                    <div 
+                      className="absolute border-2 border-cyan-500 bg-cyan-200 bg-opacity-20 pointer-events-none"
+                      style={{
+                        width: '150px',
+                        height: '150px',
+                        left: `calc(${cursorPosition.x}% - 75px)`,
+                        top: `calc(${cursorPosition.y}% - 75px)`,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 10,
+                        borderRadius: '8px',
+                      }}
+                    />
+                  )}
                 </div>
 
-                {/* Magnifier for zoom level 1 */}
+                {/* Flipkart Style Magnifier */}
                 {showMagnifier && zoomLevel === 1 && cursorPosition.inside && (
                   <div 
-                    className="absolute hidden lg:block overflow-hidden rounded-xl shadow-lg border-2 border-cyan-500 bg-white"
+                    ref={magnifierRef}
+                    className="absolute hidden lg:block overflow-hidden rounded-xl shadow-2xl border-4 border-white bg-white"
                     style={{
-                      width: '250px',
-                      height: '250px',
-                      left: 'calc(100% + 20px)',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      zIndex: 20,
+                      width: '500px',
+                      height: '500px',
+                      left: `${magnifierPosition.x}px`,
+                      top: `${magnifierPosition.y}px`,
+                      zIndex: 50,
                     }}
                   >
                     <img
                       src={getImageSrc(product)}
-                      alt="Magnified view"
+                      alt="Zoomed view"
                       className="w-full h-full object-cover"
                       style={{
-                        transform: `scale(2.5)`,
+                        transform: `scale(2)`,
                         transformOrigin: `${cursorPosition.x}% ${cursorPosition.y}%`,
                         imageRendering: "high-quality",
                       }}
@@ -322,7 +361,7 @@ export default function SingleProduct() {
               </div>
             </div>
 
-            {/* Product Details Section - Narrower (1/3 of screen) */}
+            {/* Product Details Section */}
             <div className="lg:col-span-1 space-y-4 bg-white p-6 rounded-xl shadow-lg border h-fit sticky top-4">
               <h1 className="text-2xl font-bold text-cyan-800 leading-tight">{product.name}</h1>
               
@@ -338,7 +377,7 @@ export default function SingleProduct() {
                 )}
               </div>
 
-              {/* Description - Compact */}
+              {/* Description */}
               {product.description && (
                 <div className="mt-4">
                   <p className="text-cyan-900 font-bold text-lg mb-2">Description:</p>
