@@ -45,7 +45,7 @@ export default function SingleProduct() {
   const getImageSrc = (product) => {
     if (product.cloudinaryId) {
       // Higher quality image with better resolution
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_800,h_800,q_auto:best/${product.cloudinaryId}`;
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_1100,h_1100,q_auto:best,f_auto,dpr_auto/${product.cloudinaryId}`;
     }
     if (product.imageurl && product.imageurl.startsWith("http")) {
       return product.imageurl;
@@ -183,14 +183,14 @@ export default function SingleProduct() {
       <div className="container mx-auto px-4 py-10">
         {product && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-            {/* Image Section - Made larger */}
+            {/* Image Section - Larger for emphasis */}
             <div className="w-full flex flex-col items-center gap-4">
               <div
                 className="overflow-hidden rounded-xl shadow-lg border p-2 relative"
                 style={{ 
                   width: '100%', 
-                  maxWidth: '500px', 
-                  height: '500px',
+                  maxWidth: '640px', 
+                  height: '640px',
                   touchAction: "none", 
                   cursor: zoomLevel > 1 ? "grab" : "default" 
                 }}
@@ -221,14 +221,14 @@ export default function SingleProduct() {
                 />
                 {showLens && (
                   <div
-                    className="hidden lg:block absolute top-0 right-[-540px] w-[520px] h-[520px] bg-white border rounded-xl shadow-xl overflow-hidden"
+                    className="hidden lg:block absolute top-0 right-[-700px] w-[680px] h-[680px] bg-white border rounded-xl shadow-xl overflow-hidden"
                   >
                     <img
                       src={getImageSrc(product)}
                       alt="zoom"
                       className="w-full h-full object-cover"
                       style={{
-                        transform: `translate(${-Math.max(lensPos.x * 2 - 260, 0)}px, ${-Math.max(lensPos.y * 2 - 260, 0)}px) scale(2)`,
+                        transform: `translate(${-Math.max(lensPos.x * 2 - 340, 0)}px, ${-Math.max(lensPos.y * 2 - 340, 0)}px) scale(2)`,
                         transformOrigin: "top left",
                       }}
                     />
@@ -256,9 +256,9 @@ export default function SingleProduct() {
               </div>
             </div>
 
-            {/* Details Section */}
-            <div className="space-y-4">
-              <h1 className="text-3xl font-bold text-cyan-800">{product.name}</h1>
+            {/* Details Section (compact) */}
+            <div className="space-y-3">
+              <h1 className="text-2xl md:text-3xl font-bold text-cyan-800 line-clamp-2">{product.name}</h1>
               <p className="text-cyan-700 font-medium">
                 Design Code: <span className="font-semibold">{product.code}</span>
               </p>
@@ -267,7 +267,7 @@ export default function SingleProduct() {
               {product.description && (
                 <div className="mt-4">
                   <p className="text-cyan-900 font-bold text-lg">Description:</p>
-                  <p className="text-gray-700 line-clamp-3"> {/* Limiting to 3 lines */}
+                  <p className="text-gray-700 line-clamp-2">
                     {product.description}
                   </p>
                 </div>

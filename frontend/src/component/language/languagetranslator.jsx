@@ -36,8 +36,11 @@ export default function LanguageSwitcher() {
         const map = {
           IN: "en", // English for India
           GB: "en", // English for UK
+          UK: "en",
           US: "en", // English for US
           FR: "fr", // French for France
+          CA: "en", // Canada
+          AE: "en", // UAE (keep English)
         };
         const target = map[country] || "en"; // x-default fallback → English
         applyAutoTranslate(target);
@@ -55,7 +58,7 @@ export default function LanguageSwitcher() {
           {
             pageLanguage: "en",
             includedLanguages:
-              "en,hi,de,fr,es,it,pt,da,sv,no,nl,tr,he,pl,ro,el,hu,ga,lt,lb,ru",
+              "en,hi,de,fr,es,it,pt,da,sv,no,nl,tr,he,pl,ro,el,hu,ga,lt,lb,ru,ar",
             layout:
               window.google.translate.TranslateElement.InlineLayout.HORIZONTAL,
           },

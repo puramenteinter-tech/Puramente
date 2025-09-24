@@ -17,7 +17,16 @@ const Layout = ({ children }) => {
   useEffect(() => {
     const alreadySet = sessionStorage.getItem("lang_auto_set");
     const pathLocale = location.pathname.split("/")[1];
-    const supportedLocales = ["en-in", "en-gb", "en-us", "fr-fr"];
+    const supportedLocales = [
+      "en-in",
+      "en-gb",
+      "en-us",
+      "fr-fr",
+      // newly supported regional paths
+      "en-uk",
+      "en-ca",
+      "en-ae",
+    ];
     if (!alreadySet && !supportedLocales.includes(pathLocale)) {
       try {
         fetch("https://ipapi.co/json/")
@@ -26,9 +35,12 @@ const Layout = ({ children }) => {
             const country = (data?.country || "").toUpperCase();
             const map = {
               IN: "en-in",
-              GB: "en-gb",
+              GB: "en-uk", // use en-uk path for UK
+              UK: "en-uk", // safety alias
               US: "en-us",
               FR: "fr-fr",
+              CA: "en-ca",
+              AE: "en-ae",
             };
             const locale = map[country] || "en-us";
             const i18nLang = locale === "fr-fr" ? "fr" : "en";
@@ -58,7 +70,15 @@ const Layout = ({ children }) => {
       {
         (() => {
           const segments = location.pathname.split("/").filter(Boolean);
-          const supportedLocales = ["en-in", "en-gb", "en-us", "fr-fr"];
+          const supportedLocales = [
+            "en-in",
+            "en-gb",
+            "en-us",
+            "fr-fr",
+            "en-uk",
+            "en-ca",
+            "en-ae",
+          ];
           const hasLocale = supportedLocales.includes(segments[0]);
           const currentLocale = hasLocale ? segments[0] : "en-us";
           return (
@@ -70,16 +90,26 @@ const Layout = ({ children }) => {
               {(() => {
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
                 const restPath = `/${hasLocale ? segments.slice(1).join("/") : segments.join("/")}`;
-                const locales = ["en-in", "en-gb", "en-us", "fr-fr"];
+                // code: URL path segment, hreflang: attribute value
+                const locales = [
+                  { code: "en-in", hreflang: "en-in" },
+                  { code: "en-us", hreflang: "en-us" },
+                  // UK path requested as en-uk but valid hreflang is en-gb
+                  { code: "en-uk", hreflang: "en-gb" },
+                  { code: "en-gb", hreflang: "en-gb" },
+                  { code: "en-ca", hreflang: "en-ca" },
+                  { code: "en-ae", hreflang: "en-ae" },
+                  { code: "fr-fr", hreflang: "fr-fr" },
+                ];
                 const xDefaultHref = `${origin}${restPath}`;
                 return (
                   <>
                     {locales.map((lng) => (
                       <link
-                        key={lng}
+                        key={`${lng.code}-${lng.hreflang}`}
                         rel="alternate"
-                        hrefLang={lng}
-                        href={`${origin}/${lng}${restPath}`}
+                        hrefLang={lng.hreflang}
+                        href={`${origin}/${lng.code}${restPath}`}
                       />
                     ))}
                     <link rel="alternate" hrefLang="x-default" href={xDefaultHref} />
