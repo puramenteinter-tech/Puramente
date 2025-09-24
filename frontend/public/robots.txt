@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Block admin and upload endpoints
+Disallow: /dashboard
+Disallow: /product-list
+Disallow: /blog-list
+Disallow: /admin/
+
+Sitemap: https://puramentejewel.com/sitemap.xml
+

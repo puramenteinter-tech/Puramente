@@ -64,11 +64,38 @@ const ShowBlogs = () => {
   return (
     <>
       <Helmet>
-        <title>Latest Blogs | Your Site Name</title>
+        <title>Latest Blogs | Puramente International</title>
         <meta
           name="description"
           content="Browse our collection of latest blog posts"
         />
+        {(() => {
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          const path = window.location.pathname;
+          const url = `${origin}${path}`;
+          return (
+            <>
+              <link rel="canonical" href={url} />
+              <meta property="og:url" content={url} />
+              <script type="application/ld+json">
+                {JSON.stringify({
+                  '@context': 'https://schema.org',
+                  '@type': 'Blog',
+                  'name': 'Puramente International Blog',
+                  'url': url,
+                  'description': 'Browse our collection of latest blog posts',
+                  'blogPost': blogs.slice(0, 10).map(b => ({
+                    '@type': 'BlogPosting',
+                    'headline': b.title,
+                    'image': b.image ? `${BaseURL}${b.image}` : undefined,
+                    'datePublished': b.createdAt,
+                    'url': `${origin}/blogs/${b.slug}`
+                  }))
+                })}
+              </script>
+            </>
+          );
+        })()}
       </Helmet>
 
       <div className="max-w-7xl mx-auto p-6">
