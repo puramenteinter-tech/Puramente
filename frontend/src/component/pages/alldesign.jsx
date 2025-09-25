@@ -142,8 +142,8 @@ const AllDesigns = () => {
                 data-aos="zoom-in"
                 data-aos-duration="500"
               >
-                {/* Image Section - Full Width & Height */}
-                <div className="relative w-full h-56 p-0 bg-gradient-to-br from-cyan-50 to-white">
+                {/* Image Section - Larger like ProductCard */}
+                <div className="relative w-full h-80 p-0 bg-gradient-to-br from-cyan-50 to-white">
                   <Link to={`/singleproduct/${product._id}`} className="block w-full h-full">
                     <img
                       src={getImageSrc(product)}
@@ -160,33 +160,33 @@ const AllDesigns = () => {
                   </span>
                 </div>
 
-                {/* Content Section */}
-                <div className="flex flex-col flex-grow p-4">
-                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-3">
-                    <h3 className="text-lg font-bold text-cyan-900 tracking-tight leading-tight mb-2 line-clamp-2 min-h-[2.5rem]">
+                {/* Content Section - Compressed like ProductCard */}
+                <div className="flex flex-col flex-grow p-2">
+                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-1">
+                    <h3 className="text-xs font-bold text-cyan-900 tracking-tight leading-tight line-clamp-2 min-h-[1.8rem]">
                       {product.name}
                     </h3>
                     
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded">
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[10px] font-semibold text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded">
                         {product.category}
                       </span>
-                      <span className="text-xs text-cyan-600 font-mono bg-white px-2 py-1 rounded border">
+                      <span className="text-[10px] text-cyan-600 font-mono bg-white px-1 py-0.5 rounded border">
                         SKU: {product.code || "N/A"}
                       </span>
                     </div>
                   </Link>
 
-                  {/* Cart Actions */}
-                  <div className="mt-auto pt-3 border-t border-cyan-100">
+                  {/* Cart Actions - Compressed like ProductCard */}
+                  <div className="mt-auto pt-1 border-t border-cyan-100">
                     {addedProducts.includes(product._id) ? (
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-semibold text-cyan-700">Qty:</span>
-                          <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-semibold text-cyan-700">Qty:</span>
+                          <div className="flex items-center gap-1">
                             <button
                               onClick={() => decrementQuantity(product._id)}
-                              className="bg-cyan-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                              className="bg-cyan-600 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow hover:bg-cyan-700 transition-all"
                             >
                               −
                             </button>
@@ -202,11 +202,11 @@ const AllDesigns = () => {
                                 }));
                                 updateQuantity(product._id, newQty);
                               }}
-                              className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+                              className="w-8 text-center py-0 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
                             />
                             <button
                               onClick={() => incrementQuantity(product._id)}
-                              className="bg-cyan-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                              className="bg-cyan-600 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow hover:bg-cyan-700 transition-all"
                             >
                               +
                             </button>
@@ -214,7 +214,7 @@ const AllDesigns = () => {
                         </div>
                         <button
                           onClick={() => handleRemoveFromCart(product._id)}
-                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
+                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold py-1 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
                         >
                           Remove from List
                         </button>
@@ -222,7 +222,7 @@ const AllDesigns = () => {
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
+                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-[10px] font-bold py-1 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
                       >
                         Add To Enquiry List
                       </button>

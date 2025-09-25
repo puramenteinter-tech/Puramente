@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 // video files import top par karo
-import test1 from "../../assets/test1.mp4";
+import test1 from "../../../public/test1.mp4";
 
 export default function VideoTestimonials() {
   const videoRefs = useRef([]);
@@ -42,7 +42,7 @@ export default function VideoTestimonials() {
 
   return (
     <section className="py-14 bg-gradient-to-b from-white to-cyan-50">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center text-cyan-800">
           What Our Clients Say
         </h2>
@@ -50,24 +50,28 @@ export default function VideoTestimonials() {
           Real video testimonials from our wholesale partners
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center">
           {items.map((item, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl shadow-lg p-4 hover:shadow-xl transition-shadow"
+              className="bg-white rounded-2xl shadow-lg p-4 hover:shadow-xl transition-shadow w-full max-w-sm mx-auto"
             >
-              <div className="relative rounded-xl overflow-hidden aspect-[9/13] bg-black group">
-                <video
-                  ref={(el) => setRef(el, idx)}
-                  src={item.src}
-                  className="w-full h-full object-cover"
-                  muted
-                  autoPlay
-                  playsInline
-                  loop
-                  preload="auto"
-                  onClick={() => handleVideoClick(idx)}
-                />
+              {/* Video Only */}
+            <div className="relative rounded-xl overflow-hidden h-60 md:h-84 flex items-center justify-center">
+  <video
+    ref={(el) => setRef(el, idx)}
+    src={item.src}
+    className="w-full h-full object-contain"
+    muted
+    autoPlay
+    playsInline
+    loop
+    preload="auto"
+    onClick={() => handleVideoClick(idx)}
+  />
+
+
+
 
                 {/* Mute/Unmute Button per Video */}
                 <button
@@ -110,6 +114,7 @@ export default function VideoTestimonials() {
                 </button>
               </div>
 
+              {/* Caption */}
               <div className="mt-3 text-center">
                 <p className="font-semibold text-cyan-900">{item.name}</p>
                 <p className="text-sm text-gray-600 mt-1">"{item.quote}"</p>
