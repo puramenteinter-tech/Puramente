@@ -87,8 +87,16 @@ const BlogDetails = () => {
           <meta property="og:image" content={`${BaseURL}${blog.image}`} />
         )}
         {(() => {
+          // Preserve any locale prefix in the path (e.g., /en-uk)
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
-          const url = `${origin}/blogs/${blog.slug}`;
+          const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+          const segments = pathname.split('/').filter(Boolean);
+          const supportedLocales = [
+            'en-in','en-gb','en-us','fr-fr','en-uk','en-ca','en-ae'
+          ];
+          const hasLocalePrefix = supportedLocales.includes(segments[0]);
+          const localePrefix = hasLocalePrefix ? `/${segments[0]}` : '';
+          const url = `${origin}${localePrefix}/blogs/${blog.slug}`;
           const image = blog.image ? `${BaseURL}${blog.image}` : undefined;
           return (
             <>

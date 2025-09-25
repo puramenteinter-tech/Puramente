@@ -70,9 +70,16 @@ const ShowBlogs = () => {
           content="Browse our collection of latest blog posts"
         />
         {(() => {
+          // Build canonical and post URLs preserving any locale prefix in the path
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
-          const path = window.location.pathname;
-          const url = `${origin}${path}`;
+          const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+          const segments = pathname.split('/').filter(Boolean);
+          const supportedLocales = [
+            'en-in','en-gb','en-us','fr-fr','en-uk','en-ca','en-ae'
+          ];
+          const hasLocalePrefix = supportedLocales.includes(segments[0]);
+          const localePrefix = hasLocalePrefix ? `/${segments[0]}` : '';
+          const url = `${origin}${pathname || '/blogs'}`;
           return (
             <>
               <link rel="canonical" href={url} />
@@ -89,7 +96,7 @@ const ShowBlogs = () => {
                     'headline': b.title,
                     'image': b.image ? `${BaseURL}${b.image}` : undefined,
                     'datePublished': b.createdAt,
-                    'url': `${origin}/blogs/${b.slug}`
+                    'url': `${origin}${localePrefix}/blogs/${b.slug}`
                   }))
                 })}
               </script>
@@ -131,12 +138,21 @@ const ShowBlogs = () => {
                       })()}
                 </p>
               </div>
-              <Link
-                to={`/blogs/${blog.slug}`}
+              {(() => {
+                const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+                const segments = pathname.split('/').filter(Boolean);
+                const supportedLocales = ['en-in','en-gb','en-us','fr-fr','en-uk','en-ca','en-ae'];
+                const localePrefix = supportedLocales.includes(segments[0]) ? `/${segments[0]}` : '';
+                const toHref = `${localePrefix}/blogs/${blog.slug}`;
+                return (
+                  <Link
+                to={toHref}
                 className="inline-block mt-3 bg-[#004f6e] text-white px-4 py-2 rounded hover:bg-[#006d94] transition-colors text-sm text-center"
               >
                 Read More
               </Link>
+                );
+              })()}
             </div>
           ))}
         </div>
