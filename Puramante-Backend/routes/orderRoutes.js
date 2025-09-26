@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import ExcelJS from "exceljs";
 import Order from "../model/Order.js";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import Product from "../model/Product.js";
 import { getNextOrderId } from "../config/getNextOrderId.js";
 import nodemailer from "nodemailer";
@@ -281,7 +282,7 @@ const generateExcelFile = async (orderData, filePath) => {
   }
 };
 
-router.post("/submit-order", async (req, res) => {
+router.post("/submit-order", requireAuth, async (req, res) => {
   // Auth required
   try {
     const authHeader = req.headers.authorization || "";
@@ -493,7 +494,7 @@ router.get("/download/:filename", (req, res) => {
   }
 });
 
-router.get("/orders", async (req, res) => {
+router.get("/orders", requireAdmin, async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, orders });

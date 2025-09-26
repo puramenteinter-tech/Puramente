@@ -80,7 +80,10 @@ const EditProduct = () => {
     }
 
     const res = await axios.put(`${BaseURL}/api/products/admin/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { 
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
     });
     
     console.log("Response:", res.data);

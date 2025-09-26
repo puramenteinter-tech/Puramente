@@ -13,7 +13,9 @@ export default function AdminUserView() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${BaseURL}/api/users/all`);
+        const response = await axios.get(`${BaseURL}/api/users/all`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         setUsers(response.data);
       } catch (err) {
         setError("Failed to fetch users");

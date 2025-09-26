@@ -79,6 +79,7 @@ const AddProduct = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           },
           timeout: 30000, // 30 seconds timeout
         }
