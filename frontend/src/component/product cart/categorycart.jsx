@@ -182,8 +182,8 @@ export default function CategoryPage() {
                 key={product._id}
                 className="bg-white rounded-xl shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden flex flex-col h-full border border-cyan-100"
               >
-                {/* Image Section - Further Increased Height */}
-                <div className="relative w-full h-90 p-0 bg-gradient-to-br from-cyan-50 to-white">
+                {/* Image Section - Fixed to h-85 (between 80-90) */}
+                <div className="relative w-full h-85 p-0 bg-gradient-to-br from-cyan-50 to-white">
                   <Link to={`/singleproduct/${product._id}`} className="block w-full h-full">
                     <img
                       src={getImageSrc(product)}
@@ -200,33 +200,33 @@ export default function CategoryPage() {
                   </span>
                 </div>
 
-                {/* Content Section - Further Compressed */}
-                <div className="flex flex-col flex-grow p-2">
-                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-1">
-                    <h3 className="text-xs font-bold text-cyan-900 tracking-tight leading-tight line-clamp-2 min-h-[1.8rem]">
+                {/* Content Section - Properly Compressed */}
+                <div className="flex flex-col flex-grow p-3">
+                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-2">
+                    <h3 className="text-sm font-bold text-cyan-900 tracking-tight leading-tight line-clamp-2 min-h-[2rem]">
                       {product.name}
                     </h3>
                     
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-[10px] font-semibold text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded">
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded">
                         {product.category}
                       </span>
-                      <span className="text-[10px] text-cyan-600 font-mono bg-white px-1 py-0.5 rounded border">
+                      <span className="text-xs text-cyan-600 font-mono bg-white px-2 py-1 rounded border">
                         SKU: {product.code || "N/A"}
                       </span>
                     </div>
                   </Link>
 
-                  {/* Cart Actions - Further Compressed */}
-                  <div className="mt-auto pt-1 border-t border-cyan-100">
+                  {/* Cart Actions - Properly Sized */}
+                  <div className="mt-auto pt-3 border-t border-cyan-100">
                     {addedProducts.includes(product._id) ? (
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-semibold text-cyan-700">Qty:</span>
-                          <div className="flex items-center gap-1">
+                          <span className="text-xs font-semibold text-cyan-700">Qty:</span>
+                          <div className="flex items-center gap-2">
                             <button
                               onClick={() => decrementQuantity(product._id)}
-                              className="bg-cyan-600 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow hover:bg-cyan-700 transition-all"
+                              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
                             >
                               −
                             </button>
@@ -242,11 +242,11 @@ export default function CategoryPage() {
                                 }));
                                 updateQuantity(product._id, newQty);
                               }}
-                              className="w-8 text-center py-0 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+                              className="w-10 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
                             />
                             <button
                               onClick={() => incrementQuantity(product._id)}
-                              className="bg-cyan-600 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow hover:bg-cyan-700 transition-all"
+                              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
                             >
                               +
                             </button>
@@ -254,7 +254,7 @@ export default function CategoryPage() {
                         </div>
                         <button
                           onClick={() => handleRemoveFromCart(product._id)}
-                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold py-1 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
+                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
                         >
                           Remove from List
                         </button>
@@ -262,7 +262,7 @@ export default function CategoryPage() {
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-[10px] font-bold py-1 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
+                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
                       >
                         Add To Enquiry List
                       </button>
