@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import xlsx from "xlsx";
 import Product from "../model/Product.js";
+import { requireAdmin } from "../middleware/auth.js";
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 
@@ -46,7 +47,7 @@ const uploadToCloudinary = (file) => {
 
 
 // 🧾 Upload Excel
-router.post("/admin/uploadexcel", upload.single("file"), async (req, res) => {
+router.post("/admin/uploadexcel", requireAdmin, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
@@ -71,7 +72,7 @@ router.post("/admin/uploadexcel", upload.single("file"), async (req, res) => {
 });
 
 // 📥 Add product with image
-router.post("/admin/add", upload.single("image"), async (req, res) => {
+router.post("/admin/add", requireAdmin, upload.single("image"), async (req, res) => {
   try {
     const { name, category, description, code, subcategory } = req.body;
 
@@ -103,7 +104,7 @@ router.post("/admin/add", upload.single("image"), async (req, res) => {
 
 
 // ✏️ Update product
-router.put("/admin/:id", upload.single("image"), async (req, res) => {
+router.put("/admin/:id", requireAdmin, upload.single("image"), async (req, res) => {
   try {
     const { name, category, subcategory, description, code } = req.body;
     const { id } = req.params;
@@ -269,7 +270,7 @@ router.get("/single/:id", async (req, res) => {
 });
 
 // 📄 Paginated admin view
-router.get("/admin/paginated", async (req, res) => {
+router.get("/admin/paginated", requireAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -302,7 +303,7 @@ const products = await Product.find(query)
   }
 });
 // ❌ Delete product
-router.delete("/admin/:id", async (req, res) => {
+router.delete("/admin/:id", requireAdmin, async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });

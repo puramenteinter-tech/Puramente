@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import Blog from "../model/Blog.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -56,7 +57,7 @@ const handleMulterError = (err, req, res, next) => {
 };
 
 // POST - Create blog
-router.post("/create", upload.single("image"), handleMulterError, async (req, res) => {
+router.post("/create", requireAdmin, upload.single("image"), handleMulterError, async (req, res) => {
   try {
     const { title, content, excerpt, metaTitle, metaDescription } = req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
@@ -131,7 +132,7 @@ router.get("/:slug", async (req, res) => {
   }
 });
 // PUT - Update blog
-router.put("/:id", upload.single("image"), handleMulterError, async (req, res) => {
+router.put("/:id", requireAdmin, upload.single("image"), handleMulterError, async (req, res) => {
   try {
     const { title, content, excerpt, metaTitle, metaDescription } = req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : undefined;
@@ -166,7 +167,7 @@ router.put("/:id", upload.single("image"), handleMulterError, async (req, res) =
 });
 
 // DELETE - Remove blog
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const blog = await Blog.findByIdAndDelete(req.params.id);
 

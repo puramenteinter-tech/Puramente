@@ -9,7 +9,9 @@ const AdminBlogList = () => {
 
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get(`${BaseURL}/api/blogs`);
+      const res = await axios.get(`${BaseURL}/api/blogs`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
       setBlogs(res.data.blogs);
     } catch (err) {
       console.error("Error loading blogs:", err);
@@ -18,7 +20,9 @@ const AdminBlogList = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure to delete this blog?")) {
-      await axios.delete(`${BaseURL}/api/blogs/${id}`);
+      await axios.delete(`${BaseURL}/api/blogs/${id}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
       fetchBlogs(); // Refresh list
     }
   };

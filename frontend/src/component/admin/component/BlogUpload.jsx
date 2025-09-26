@@ -57,6 +57,7 @@ export default function BlogUpload() {
       const response = await axios.post(`${BaseURL}/api/blogs/create`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         },
       });
 

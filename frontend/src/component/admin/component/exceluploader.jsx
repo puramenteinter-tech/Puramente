@@ -28,7 +28,10 @@ export default function ExcelUploader() {
     try {
       setLoading(true);
       const response = await axios.post(`${BaseURL}/api/products/admin/uploadexcel`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
       });
 
       if (response.status === 200) {

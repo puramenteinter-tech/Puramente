@@ -23,7 +23,9 @@ const EditBlog = () => {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const res = await axios.get(`${BaseURL}/api/blogs`);
+        const res = await axios.get(`${BaseURL}/api/blogs`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         const blog = res.data.blogs.find((b) => b._id === id);
         if (blog) {
           setFormData({ 
@@ -75,7 +77,9 @@ const EditBlog = () => {
         data.append("image", formData.image);
       }
 
-      await axios.put(`${BaseURL}/api/blogs/${id}`, data);
+      await axios.put(`${BaseURL}/api/blogs/${id}`, data, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
       setSuccessMessage("Blog updated successfully ✅");
 
       setTimeout(() => {

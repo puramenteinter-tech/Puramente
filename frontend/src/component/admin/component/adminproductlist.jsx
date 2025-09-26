@@ -14,7 +14,8 @@ const AdminProductList = () => {
   const fetchProducts = async () => {
     try {
       const res = await axios.get(
-        `${BaseURL}/api/products/admin/paginated?page=${page}&limit=10&search=${search}`
+        `${BaseURL}/api/products/admin/paginated?page=${page}&limit=10&search=${search}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       setProducts(res.data.products);
       setTotalPages(res.data.totalPages);
@@ -29,7 +30,9 @@ const AdminProductList = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure to delete this product?")) {
-      await axios.delete(`${BaseURL}/api/products/admin/${id}`);
+      await axios.delete(`${BaseURL}/api/products/admin/${id}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
       fetchProducts();
     }
   };

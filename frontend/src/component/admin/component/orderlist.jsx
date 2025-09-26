@@ -14,7 +14,9 @@ const OrderList = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`${BaseURL}/api/orders/orders`);
+        const response = await axios.get(`${BaseURL}/api/orders/orders`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         setOrders(response.data.orders || []);
       } catch (err) {
         setError(err.message);

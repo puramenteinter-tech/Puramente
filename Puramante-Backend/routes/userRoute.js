@@ -3,6 +3,7 @@ import User from "../model/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { requireAdmin } from "../middleware/auth.js";
 import nodemailer from "nodemailer";
 dotenv.config();
 
@@ -17,7 +18,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-router.get("/all", async (req, res) => {
+router.get("/all", requireAdmin, async (req, res) => {
   try {
     const users = await User.find().select("-password"); // Exclude passwords
     res.status(200).json(users);
