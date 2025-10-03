@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "frontend": "vite",
+    "backend": "cd ../Puramante-Backend && npm start",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
     "build": "vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
     "start": "vite --host"
   },
@@ -37,6 +38,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.2.1",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",

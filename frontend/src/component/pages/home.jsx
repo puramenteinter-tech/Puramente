@@ -8,10 +8,10 @@ import Jewelryinfo from "../newcomponent/Jewelryinfo";
 import VideoSection from "../newcomponent/youtubevideo";
 import HomeProductCard from "../product cart/homeproduct";
 import VideoTestimonials from "../newcomponent/videotestimonials";
-
 import Faqsection from "../newcomponent/faq";
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
+
 export default function Home() {
   const location = useLocation();
   const origin = typeof window !== "undefined" ? window.location.origin : "https://puramentejewel.com";

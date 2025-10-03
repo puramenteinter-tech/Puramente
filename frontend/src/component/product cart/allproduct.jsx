@@ -6,6 +6,7 @@ import axios from "axios";
 import BaseURL from "../../baseurl";
 import { useCart } from "../newcomponent/cartcontext";
 import { Isauthanticate } from "../authantication/isauthanticat";
+import { Helmet } from "react-helmet-async";
 
 AOS.init();
 
@@ -102,6 +103,19 @@ const ProductCard = () => {
 
   return (
     <div className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 min-h-screen">
+           <Helmet>
+        <title>Contact Puramente Jewel | Jewelry Experts</title>
+        <meta
+          name="description"
+          content="Get in touch with Puramente Jewel International for inquiries, orders, and support. Serving customers in France, UK, USA & across Europe."
+        />
+        <meta
+          name="keywords"
+          content="Contact Puramente Jewel, Jewelry Support, Jewelry Inquiries Europe"
+        />
+        <link rel="canonical" href="https://puramentejewel.com/contactus" />
+      </Helmet>
+
       <div className="w-full text-center mb-10">
         <h1 className="text-3xl font-extrabold text-cyan-600 tracking-tight">The Latest Gems</h1>
         <p className="text-md font-medium text-cyan-800 mt-2 italic max-w-2xl mx-auto">

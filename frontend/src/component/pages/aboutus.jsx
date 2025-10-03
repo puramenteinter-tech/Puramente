@@ -18,7 +18,7 @@ export default function Aboutus() {
         <title>About Us | Puramente Jewel International</title>
         <meta
           name="description"
-          content="Learn about Puramente Jewel International – our vision, heritage, and craftsmanship serving customers in France, UK, USA & Europe."
+          content="Learn about Puramente Jewel International - our vision, heritage, and craftsmanship serving customers in France, UK, USA & Europe."
         />
         <meta
           name="keywords"

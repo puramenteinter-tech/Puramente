@@ -7,7 +7,7 @@ import { useCart } from "../newcomponent/cartcontext";
 import { Helmet } from "react-helmet-async";
 import { Isauthanticate } from "../authantication/isauthanticat";
 
-export default function CategoryPage() {
+export default function  () {
   const { category } = useParams();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
