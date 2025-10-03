@@ -1,0 +1,19 @@
+# robots.txt for https://puramentejewel.com/
+
+User-agent: *
+# Allow essential pages
+Allow: /
+
+# Block admin and system folders
+Disallow: /profile/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /addproduct/
+Disallow: /orderlist/
+Disallow: /userview/
+Disallow: /login/
+Disallow: /excelfile/
+Disallow: /uploadblog/
+
+Sitemap: https://puramentejewel.com/sitemap.xml
+
