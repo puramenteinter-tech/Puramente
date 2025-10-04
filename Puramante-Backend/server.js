@@ -6,17 +6,19 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 
+
+
 // Route imports
 import userRegister from "./routes/userRoute.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
 import contactRoutes from "./routes/contactus.js";
 import wishListRoutes from "./routes/wishListRoutes.js";
 import blogRoutes from "./routes/blog.js";
 import cloudinaryRoutes from "./routes/cloudinary.js";
 import mongoose from "mongoose";
 import Blog from "./model/Blog.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 // Cloudinary config
 import { v2 as cloudinary } from 'cloudinary';
@@ -55,6 +57,7 @@ cloudinary.api.ping()
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const app = express();
+
 
 // CORS with sensible fallbacks for local dev
 const allowedOrigins = [

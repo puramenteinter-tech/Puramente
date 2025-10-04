@@ -504,4 +504,20 @@ router.get("/orders", requireAdmin, async (req, res) => {
   }
 });
 
+
+// DELETE ORDER by ID
+router.delete("/orders/:id", requireAdmin, async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    res.status(200).json({ success: true, message: "Order deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 export default router;
