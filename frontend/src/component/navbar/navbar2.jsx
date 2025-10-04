@@ -56,8 +56,8 @@ export default function Navbar2() {
 
   return (
     <div>
-      <nav className="relative hidden lg:flex gap-8 items-center h-16 w-full">
-        <div className="text-button-orange flex justify-between items-center px-24 w-full gap-10 p-2 text-lg font-bold">
+      <nav className="relative hidden lg:flex gap-8 items-center h-12 w-full">
+        <div className="text-button-orange flex justify-between items-center px-24 w-full gap-10 p-2 text-md font-bold">
           <Link
             onMouseEnter={() => setDropdown(false)}
             className="hover:text-cyan-600"

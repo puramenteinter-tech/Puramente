@@ -35,7 +35,7 @@ export default function VideoTestimonials() {
   const items = [
     {
       src: test1,
-      name: "Elena, UK",
+      name: "Anna, UK",
       quote: "Beautiful craftsmanship and reliable wholesale partner!",
     },
   ];

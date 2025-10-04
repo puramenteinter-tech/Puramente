@@ -14,46 +14,47 @@ import { useLocation } from "react-router-dom";
 
 export default function Home() {
   const location = useLocation();
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://puramentejewel.com";
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://puramentejewel.com";
   const canonicalUrl = `${origin}${location.pathname || "/"}`;
   return (
-     <>
+    <>
       <Helmet>
         <title>Jewelry Manufacturer & Wholesaler | Puramente Jewel</title>
         <meta
           name="description"
-          content="Puramente Jewel International – trusted jewelry manufacturer & wholesaler. Finest necklaces, earrings, bracelets & more for France, UK, USA & Europe."
+          content="Puramente Jewel International - trusted jewelry manufacturer & wholesaler. Finest necklaces, earrings, bracelets & more for France, UK, USA & Europe."
         />
         <meta
           name="keywords"
-          content="Jewelry Manufacturer, Jewelry Wholesaler, Puramente Jewel, Necklace Earrings Bracelets, Jewelry Europe"
+          content="Jewelry Manufacturer, Jewelry Wholesaler, Puramente Jewel, Necklace Earrings Bracelets, Jewelry Europe."
         />
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:url" content={canonicalUrl} />
       </Helmet>
 
       {/* Existing home page content */}
-      
-     
 
       {/* Rest of your home page */}
-    
-    <div>
-      <Carousel />
-      <h1 className="text-center text-3xl font-bold text-gray-900 mt-10 mb-6 capitalize">
-        Welcome to Puramente Jewel
-      </h1>
-      <Collection />
-      <HomeProductCard />
-      <Topproduct />
-      <WhoWeAre />
-      <Jewelryinfo />
-      <InfoCards />
-      <VideoSection />
-      <VideoTestimonials />
-      <Faqsection/>
-      <HelpSection />
-    </div>
+
+      <div>
+        <Carousel />
+        <h1 className="text-center text-3xl font-bold text-gray-900 mt-10 mb-6 capitalize">
+          Welcome to Puramente Jewel
+        </h1>
+        <Collection />
+        <HomeProductCard />
+        <Topproduct />
+        <WhoWeAre />
+        <Jewelryinfo />
+        <InfoCards />
+        <VideoSection />
+        <VideoTestimonials />
+        <Faqsection />
+        <HelpSection />
+      </div>
     </>
   );
 }

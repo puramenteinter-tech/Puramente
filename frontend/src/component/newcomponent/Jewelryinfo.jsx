@@ -162,7 +162,7 @@ const Jewelryinfo = () => {
             Explore
           </h2>
           <nav className="space-y-2 sm:space-y-3">
-            {Object.keys(sections).map((key) => (
+            {Object.keys(sections).map((key, index) => (
               <button
                 key={key}
                 onClick={() => setActiveSection(key)}
@@ -210,7 +210,7 @@ const Jewelryinfo = () => {
       </footer>
 
       {/* Custom Animation Styles */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from {
             opacity: 0;

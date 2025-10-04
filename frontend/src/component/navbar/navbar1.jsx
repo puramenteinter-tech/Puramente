@@ -104,11 +104,11 @@ export default function Navbar1() {
   return (
     <div>
       {/* Desktop Navbar */}
-      <nav className="w-full hidden lg:flex h-23 items-center bg-background-sky">
+      <nav className="w-full hidden lg:flex h-25 items-center bg-background-sky">
         <Link to="/">
           <img
-            className="h-20 w-48 p-2 ml-6"
-            src="/puramente logo.png"
+            className="h-130 w-110 p-2 ml-6 "
+            src="/public/posters/puralogo.png"
             alt="logo"
           />
         </Link>
@@ -172,6 +172,7 @@ export default function Navbar1() {
                 {cartItems.length}
               </span>
             )}
+
           </Link>
 
           {/* Language */}
@@ -202,8 +203,8 @@ export default function Navbar1() {
         </button>
         <Link to="/">
           <img
-            className="h-14 w-40"
-            src="/puramente logo.png"
+            className="h-80 w-50"
+            src="/public/posters/puralogo.png"
             alt="jewellers"
           />
         </Link>
@@ -330,7 +331,7 @@ export default function Navbar1() {
           <Link onClick={togglesidemenu} to="/">
             <img
               className="absolute bottom-5 h-16 w-48"
-              src="/puramente logo.png"
+              src="/public/posters/puralogo.png"
               alt=""
             />
           </Link>

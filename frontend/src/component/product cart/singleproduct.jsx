@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Phone, Share2, ZoomIn, ZoomOut } from "lucide-react";
+import { Phone, Share2 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import BaseURL from "../../baseurl";
@@ -12,29 +12,12 @@ export default function SingleProduct() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [zoomLevel, setZoomLevel] = useState(1);
-
-  // For panning and magnifier - Flipkart style
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [showMagnifier, setShowMagnifier] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState({ 
-    x: 0, 
-    y: 0, 
-    inside: false 
-  });
-  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
-
-  const dragging = useRef(false);
-  const lastPos = useRef({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const containerRef = useRef(null);
-  const imageRef = useRef(null);
-  const magnifierRef = useRef(null);
 
   const { id } = useParams();
   const { addToCart, cartItems, removeFromCart } = useCart();
+  const isInCart = cartItems.some((item) => item._id === id);
 
-  const isInCart = cartItems.some(item => item._id === id);
+  const imageRef = useRef(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -75,157 +58,36 @@ export default function SingleProduct() {
 
   const handleShare = () => {
     if (!product) return;
-    
+
     if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: `Check out this product: ${product.name}`,
-        url: window.location.href,
-      })
-      .then(() => console.log('Shared successfully'))
-      .catch((error) => console.error('Error sharing:', error));
+      navigator
+        .share({
+          title: product.name,
+          text: `Check out this product: ${product.name}`,
+          url: window.location.href,
+        })
+        .catch((error) => console.error("Error sharing:", error));
     } else {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => alert('Product link copied to clipboard!'))
-        .catch(() => alert('Please copy the URL manually: ' + window.location.href));
+      navigator.clipboard
+        .writeText(window.location.href)
+        .then(() => alert("Product link copied to clipboard!"));
     }
   };
 
-  // Zoom control
-  const increaseZoom = () => {
-    setZoomLevel(prev => {
-      const next = Math.min(prev + 0.25, 3);
-      if (next === 1) setOffset({ x: 0, y: 0 });
-      else clampOffset(offset, next);
-      return next;
-    });
-  };
-  
-  const decreaseZoom = () => {
-    setZoomLevel(prev => {
-      const next = Math.max(prev - 0.25, 1);
-      if (next === 1) setOffset({ x: 0, y: 0 });
-      else clampOffset(offset, next);
-      return next;
-    });
-  };
-
-  const clampOffset = (offset, zoom) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    const containerWidth = rect.width;
-    const containerHeight = rect.height;
-    const imageWidth = containerWidth * zoom;
-    const imageHeight = containerHeight * zoom;
-
-    const maxOffsetX = Math.max(0, (imageWidth - containerWidth) / 2);
-    const maxOffsetY = Math.max(0, (imageHeight - containerHeight) / 2);
-
-    let x = Math.max(Math.min(offset.x, maxOffsetX), -maxOffsetX);
-    let y = Math.max(Math.min(offset.y, maxOffsetY), -maxOffsetY);
-
-    setOffset({ x, y });
-  };
-
-  const onDragStart = (e) => {
-    e.preventDefault();
-    if (zoomLevel === 1) return;
-    
-    dragging.current = true;
-    setIsDragging(true);
-    setShowMagnifier(false);
-    
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
-    lastPos.current = { x: clientX, y: clientY };
-  };
-
-  const onDragMove = (e) => {
-    if (!dragging.current || zoomLevel === 1) return;
-
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
-    if (clientX == null || clientY == null) return;
-
-    const deltaX = clientX - lastPos.current.x;
-    const deltaY = clientY - lastPos.current.y;
-
-    lastPos.current = { x: clientX, y: clientY };
-
-    setOffset(prev => {
-      const newOffset = { x: prev.x + deltaX, y: prev.y + deltaY };
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return prev;
-      
-      const containerWidth = rect.width;
-      const containerHeight = rect.height;
-      const imageWidth = containerWidth * zoomLevel;
-      const imageHeight = containerHeight * zoomLevel;
-
-      const maxOffsetX = Math.max(0, (imageWidth - containerWidth) / 2);
-      const maxOffsetY = Math.max(0, (imageHeight - containerHeight) / 2);
-
-      let x = Math.max(Math.min(newOffset.x, maxOffsetX), -maxOffsetX);
-      let y = Math.max(Math.min(newOffset.y, maxOffsetY), -maxOffsetY);
-
-      return { x, y };
-    });
-  };
-
-  const onDragEnd = () => {
-    dragging.current = false;
-    setIsDragging(false);
-  };
-
-  // Flipkart style hover zoom effect
+  // 🧩 Hover Zoom Logic (smooth 1.5x internal zoom)
   const handleMouseMove = (e) => {
-    if (!imageRef.current || zoomLevel !== 1 || dragging.current) {
-      setShowMagnifier(false);
-      return;
-    }
-    
+    if (!imageRef.current) return;
     const rect = imageRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Check if mouse is inside image bounds
-    const inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
-    
-    if (inside) {
-      // Calculate percentage position for magnifier
-      const percentX = (x / rect.width) * 100;
-      const percentY = (y / rect.height) * 100;
-      
-      setCursorPosition({ 
-        x: percentX, 
-        y: percentY, 
-        inside: true 
-      });
-
-      // Calculate magnifier position (Flipkart style - right side)
-      if (magnifierRef.current) {
-        const magnifierRect = magnifierRef.current.getBoundingClientRect();
-        const containerRect = containerRef.current.getBoundingClientRect();
-        
-        // Position magnifier to the right of the image
-        setMagnifierPosition({
-          x: containerRect.right + 20,
-          y: containerRect.top
-        });
-      }
-      
-      setShowMagnifier(true);
-    } else {
-      setShowMagnifier(false);
-    }
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    imageRef.current.style.transformOrigin = `${x}% ${y}%`;
+    imageRef.current.style.transform = "scale(1.5)";
   };
 
   const handleMouseLeave = () => {
-    setShowMagnifier(false);
-    setCursorPosition(prev => ({ ...prev, inside: false }));
+    if (!imageRef.current) return;
+    imageRef.current.style.transformOrigin = "center center";
+    imageRef.current.style.transform = "scale(1)";
   };
 
   if (loading) return <div className="text-center mt-10">Loading...</div>;
@@ -237,150 +99,74 @@ export default function SingleProduct() {
       {product && (
         <Helmet>
           <title>{product.name} | Puramente Jewel</title>
-          <meta name="description" content={product.description || `Discover ${product.name} from Puramente Jewel International`} />
-          <meta name="keywords" content={`${product.name}, ${product.category}, jewelry, Puramente Jewel`} />
-          <link rel="canonical" href={`https://puramentejewel.com/singleproduct/${product._id}`} />
+          <meta
+            name="description"
+            content={
+              product.description ||
+              `Discover ${product.name} from Puramente Jewel International`
+            }
+          />
+          <meta
+            name="keywords"
+            content={`${product.name}, ${product.category}, jewelry, Puramente Jewel`}
+          />
+          <link
+            rel="canonical"
+            href={`https://puramentejewel.com/singleproduct/${product._id}`}
+          />
         </Helmet>
       )}
 
       <div className="container mx-auto px-4 py-10">
         {product && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Image Section with Flipkart Style Zoom */}
+            {/* 🖼 Image Section */}
             <div className="lg:col-span-2 w-full flex flex-col items-center gap-4">
-              <div className="relative w-full">
-                <div
-                  className="overflow-hidden rounded-xl shadow-lg border p-2 relative bg-gray-50"
-                  style={{ 
-                    width: '100%', 
-                    height: '700px',
-                    touchAction: "none", 
-                    cursor: isDragging ? "grabbing" : (zoomLevel > 1 ? "grab" : "crosshair") 
-                  }}
-                  ref={containerRef}
-                  onMouseDown={onDragStart}
-                  onMouseMove={(e) => {
-                    onDragMove(e);
-                    if (zoomLevel === 1 && !isDragging) handleMouseMove(e);
-                  }}
-                  onMouseUp={onDragEnd}
-                  onMouseLeave={(e) => {
-                    onDragEnd();
-                    handleMouseLeave();
-                  }}
-                  onTouchStart={onDragStart}
-                  onTouchMove={onDragMove}
-                  onTouchEnd={onDragEnd}
-                  onTouchCancel={onDragEnd}
-                >
-                  {/* High Quality Image Container */}
-                  <div className="w-full h-full flex items-center justify-center">
-                    <img
-                      ref={imageRef}
-                      src={getImageSrc(product)}
-                      alt={product.name}
-                      onError={(e) => { 
-                        e.currentTarget.onerror = null; 
-                        e.currentTarget.src = "https://placehold.co/1200x1200?text=No+Image"; 
-                      }}
-                      className="object-scale-down select-none max-w-full max-h-full"
-                      style={{
-                        transform: `scale(${zoomLevel}) translate(${offset.x}px, ${offset.y}px)`,
-                        transition: isDragging ? "none" : "transform 0.2s ease",
-                        userSelect: "none",
-                        WebkitUserSelect: "none",
-                        imageRendering: zoomLevel > 1 ? "high-quality" : "auto",
-                      }}
-                      draggable={false}
-                    />
-                  </div>
-
-                  {/* Zoom Lens (like Flipkart) */}
-                  {showMagnifier && zoomLevel === 1 && cursorPosition.inside && (
-                    <div 
-                      className="absolute border-2 border-cyan-500 bg-cyan-200 bg-opacity-20 pointer-events-none"
-                      style={{
-                        width: '150px',
-                        height: '150px',
-                        left: `calc(${cursorPosition.x}% - 75px)`,
-                        top: `calc(${cursorPosition.y}% - 75px)`,
-                        transform: 'translate(-50%, -50%)',
-                        zIndex: 10,
-                        borderRadius: '8px',
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Flipkart Style Magnifier */}
-                {showMagnifier && zoomLevel === 1 && cursorPosition.inside && (
-                  <div 
-                    ref={magnifierRef}
-                    className="absolute hidden lg:block overflow-hidden rounded-xl shadow-2xl border-4 border-white bg-white"
-                    style={{
-                      width: '500px',
-                      height: '500px',
-                      left: `${magnifierPosition.x}px`,
-                      top: `${magnifierPosition.y}px`,
-                      zIndex: 50,
+              <div className="relative w-full overflow-hidden rounded-xl shadow-lg border p-2 bg-gray-50">
+                <div className="w-full h-[700px] flex items-center justify-center">
+                  <img
+                    ref={imageRef}
+                    src={getImageSrc(product)}
+                    alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src =
+                        "https://placehold.co/1200x1200?text=No+Image";
                     }}
-                  >
-                    <img
-                      src={getImageSrc(product)}
-                      alt="Zoomed view"
-                      className="w-full h-full object-cover"
-                      style={{
-                        transform: `scale(2)`,
-                        transformOrigin: `${cursorPosition.x}% ${cursorPosition.y}%`,
-                        imageRendering: "high-quality",
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Zoom Controls */}
-              <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-lg">
-                <button
-                  onClick={decreaseZoom}
-                  className="bg-cyan-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={zoomLevel <= 1}
-                >
-                  <ZoomOut size={18} />
-                </button>
-                <span className="font-semibold text-cyan-800 min-w-[100px] text-center">
-                  Zoom: {zoomLevel.toFixed(1)}x
-                </span>
-                <button
-                  onClick={increaseZoom}
-                  className="bg-cyan-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={zoomLevel >= 3}
-                >
-                  <ZoomIn size={18} />
-                </button>
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    className="object-contain select-none w-full h-full transition-transform duration-300 ease-out"
+                    draggable={false}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Product Details Section */}
+            {/* 📋 Product Details */}
             <div className="lg:col-span-1 space-y-4 bg-white p-6 rounded-xl shadow-lg border h-fit sticky top-4">
-              <h1 className="text-2xl font-bold text-cyan-800 leading-tight">{product.name}</h1>
-              
+              <h1 className="text-2xl font-bold text-cyan-800 leading-tight">
+                {product.name}
+              </h1>
+
               <div className="space-y-2">
                 <p className="text-cyan-700 font-medium">
-                  Design Code: <span className="font-semibold">{product.code || "N/A"}</span>
+                  Design Code:{" "}
+                  <span className="font-semibold">{product.code || "N/A"}</span>
                 </p>
 
                 {product.category && (
                   <p className="text-cyan-700 font-medium">
-                    Category: <span className="font-semibold">{product.category}</span>
+                    Category:{" "}
+                    <span className="font-semibold">{product.category}</span>
                   </p>
                 )}
               </div>
 
-              {/* Description */}
               {product.description && (
                 <div className="mt-4">
-                  <p className="text-cyan-900 font-bold text-lg mb-2">Description:</p>
+                  <p className="text-cyan-900 font-bold text-lg mb-2">
+                    Description:
+                  </p>
                   <p className="text-gray-700 text-sm leading-relaxed">
                     {product.description}
                   </p>
@@ -393,7 +179,7 @@ export default function SingleProduct() {
                 <div className="flex items-center gap-2">
                   <button
                     className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   >
                     -
                   </button>
@@ -409,7 +195,7 @@ export default function SingleProduct() {
                   />
                   <button
                     className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
-                    onClick={() => setQuantity(q => q + 1)}
+                    onClick={() => setQuantity((q) => q + 1)}
                   >
                     +
                   </button>
