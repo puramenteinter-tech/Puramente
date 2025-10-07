@@ -1,151 +1,322 @@
-import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
-import Navbar1 from "../navbar/navbar1";
-import Navbar2 from "../navbar/navbar2";
-import Footer from "../footer/footer";
-import WhatsAppButton from "../newcomponent/whatsappbutton";
-import Loader from "../loader/loader";
-import { Helmet } from "react-helmet-async";
 import BaseURL from "../../baseurl";
+import { Link } from "react-router-dom";
+import { useCart } from "../newcomponent/cartcontext";
+import { Helmet } from "react-helmet-async";
+import { Isauthanticate } from "../authantication/isauthanticat";
 
-const CategoryPage = () => {
-  const { categoryName } = useParams();
-  const [categoryProducts, setCategoryProducts] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageGroup, setPageGroup] = useState(0);
+export default function CategoryPage() {
+  const { category } = useParams();
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [addedProducts, setAddedProducts] = useState([]);
+  const [quantities, setQuantities] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [activeTab, setActiveTab] = useState("all");
+  const productsPerPage = 16;
 
-  const itemsPerPage = 12; // products per page
-  const pagesPerGroup = 5; // how many page buttons to show at once
+  const { addToCart, removeFromCart, updateQuantity } = useCart();
 
-  // fetch category data
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await axios.get(`${BaseURL}/api/category/${categoryName}`);
-        setCategoryProducts(res.data.products || []);
-      } catch (err) {
-        console.error("Error fetching category:", err);
+        const response = await axios.get(
+          `${BaseURL}/api/products/category/${category}/paginated?filter=${activeTab}&page=${currentPage}&limit=${productsPerPage}`
+        );
+        setProducts(response.data.products || []);
+        setTotalPages(response.data.totalPages || 1);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setError("Failed to load products. Please try again.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [categoryName]);
 
-  if (loading) return <Loader />;
+    fetchProducts();
 
-  // pagination logic
-  const totalPages = Math.ceil(categoryProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = categoryProducts.slice(startIndex, startIndex + itemsPerPage);
+    const savedCart = localStorage.getItem("cart");
+    const parsedCart = savedCart ? JSON.parse(savedCart) : [];
+    setAddedProducts(parsedCart.map((item) => item._id));
+    const qtyMap = {};
+    parsedCart.forEach((item) => {
+      qtyMap[item._id] = item.quantity || 1;
+    });
+    setQuantities(qtyMap);
+  }, [category, activeTab, currentPage]);
 
-  const goToPage = (page) => setCurrentPage(page);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, category]);
 
-  const startPage = pageGroup * pagesPerGroup + 1;
-  const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setAddedProducts((prev) => [...prev, product._id]);
+    setQuantities((prev) => ({ ...prev, [product._id]: 0 }));
+  };
 
-  return (
-    <>
-      <Helmet>
-        <title>{categoryName} | Puramente Jewel</title>
-      </Helmet>
+  const handleRemoveFromCart = (_id) => {
+    removeFromCart(_id);
+    setAddedProducts((prev) => prev.filter((id) => id !== _id));
+    setQuantities((prev) => {
+      const copy = { ...prev };
+      delete copy[_id];
+      return copy;
+    });
+  };
 
-      <Navbar1 />
-      <Navbar2 />
-
-      <div className="pt-10 pb-16 px-4 sm:px-6 md:px-10 bg-gradient-to-b from-cyan-50 to-teal-100 min-h-screen">
-        <h2 className="text-center text-3xl sm:text-4xl font-bold text-cyan-700 mb-10 capitalize">
-          {categoryName}
-        </h2>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8 justify-items-center">
-          {currentProducts.map((product) => (
-            <div
-              key={product._id}
-              className="relative bg-white p-4 sm:p-5 rounded-2xl shadow-md hover:shadow-xl transition-transform hover:-translate-y-1 w-full max-w-xs"
-            >
-              {product.newProduct && (
-                <span className="absolute top-3 left-3 bg-cyan-500 text-white px-2 py-1 text-xs font-semibold rounded-full">
-                  New
-                </span>
-              )}
-
-              <img
-                src={product.images?.[0]}
-                alt={product.productName}
-                className="w-full h-56 sm:h-64 object-cover rounded-xl mb-4"
-              />
-
-              <h3 className="text-gray-800 font-semibold text-base sm:text-lg mb-1 text-center">
-                {product.productName}
-              </h3>
-              <p className="text-gray-500 text-sm text-center mb-2">
-                {categoryName}
-              </p>
-              <p className="text-cyan-700 text-sm text-center font-medium mb-3">
-                SKU: {product.sku}
-              </p>
-
-              <div className="text-center">
-                <button
-                  onClick={() => (window.location.href = `/singleproduct/${product._id}`)}
-                  className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-cyan-600 hover:to-teal-600 transition-all"
-                >
-                  Add To Enquiry List
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Pagination (5 numbers at a time) */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center mt-12 flex-wrap gap-2">
-            {pageGroup > 0 && (
-              <button
-                onClick={() => setPageGroup(pageGroup - 1)}
-                className="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow font-bold hover:bg-cyan-600 transition-all"
-              >
-                Prev
-              </button>
-            )}
-
-            {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-              const pageNumber = startPage + i;
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => goToPage(pageNumber)}
-                  className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
-                    currentPage === pageNumber
-                      ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white"
-                      : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
-
-            {endPage < totalPages && (
-              <button
-                onClick={() => setPageGroup(pageGroup + 1)}
-                className="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow font-bold hover:bg-cyan-600 transition-all"
-              >
-                Next
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <WhatsAppButton />
-      <Footer />
-    </>
-  );
+ const incrementQuantity = (_id) => {
+  const newQty = (quantities[_id] || 0) + 1;
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
 };
 
-export default CategoryPage;
+const decrementQuantity = (_id) => {
+  const newQty = Math.max(0, (quantities[_id] || 0) - 1);
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
+  if (newQty === 0) handleRemoveFromCart(_id);
+};
+
+  const getImageSrc = (product) => {
+    if (product?.imageUrl) return product.imageUrl;
+    if (product?.imageurl) return product.imageurl;
+    if (product?.cloudinaryId) {
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
+    }
+    return "/default-placeholder.jpg";
+  };
+
+  const currentProducts = products;
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber > 1 && !Isauthanticate()) {
+      navigate("/login", { replace: false, state: { from: window.location.pathname } });
+      return;
+    }
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <div className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 min-h-screen">
+      <Helmet>
+        <title>{`${category} Jewelry | Puramente Jewel`}</title>
+        <meta name="description" content={`Shop ${category} jewelry from Puramente Jewel International. Handcrafted elegance shipped worldwide.`} />
+        <meta name="keywords" content={`${category} jewelry, ${category} pendants, ${category} rings`} />
+      </Helmet>
+
+      <div className="w-full text-center mb-10">
+        <h1 className="text-3xl font-extrabold text-cyan-600 tracking-tight capitalize">
+          {category} Collection
+        </h1>
+        <p className="text-md font-medium text-cyan-800 mt-2 italic max-w-2xl mx-auto">
+          "Exquisite {category} collection from the best jewellery manufacturers in India."
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex justify-center mb-8">
+        <div className="flex space-x-1 bg-cyan-100 p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+              activeTab === "all" 
+                ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow" 
+                : "text-cyan-700 hover:bg-cyan-200"
+            }`}
+          >
+            All {category}
+          </button>
+          <button
+            onClick={() => setActiveTab("with")}
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+              activeTab === "with" 
+                ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow" 
+                : "text-cyan-700 hover:bg-cyan-200"
+            }`}
+          >
+            With Gemstone
+          </button>
+          <button
+            onClick={() => setActiveTab("without")}
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+              activeTab === "without" 
+                ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow" 
+                : "text-cyan-700 hover:bg-cyan-200"
+            }`}
+          >
+            Without Gemstone
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="w-10 h-10 border-4 border-cyan-600 border-dashed rounded-full animate-spin"></div>
+        </div>
+      ) : error ? (
+        <p className="text-center text-red-500">{error}</p>
+      ) : currentProducts.length === 0 ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center text-gray-500">
+            <h2 className="text-xl font-semibold mb-2">No Products Found</h2>
+            <p className="text-sm">
+              We couldn't find any products in this category.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {currentProducts.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-xl shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden flex flex-col h-full border border-cyan-100"
+              >
+                {/* Image Section - Fixed to h-85 (between 80-90) */}
+                <div className="relative w-full h-85 p-0 bg-gradient-to-br from-cyan-50 to-white">
+                  <Link to={`/singleproduct/${product._id}`} className="block w-full h-full">
+                    <img
+                      src={getImageSrc(product)}
+                      alt={`${product.name} – ${product.category} by Puramente | fashion jewellery wholesale suppliers in India`}
+                      className="w-full h-full object-cover rounded-t-xl transition-all duration-300 hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = "/default-placeholder.jpg";
+                      }}
+                    />
+                  </Link>
+                  <span className="absolute top-3 left-3 bg-gradient-to-r from-cyan-600 to-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+                    New
+                  </span>
+                </div>
+
+                {/* Content Section - Properly Compressed */}
+                <div className="flex flex-col flex-grow p-3">
+                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-2">
+                    <h3 className="text-sm font-bold text-cyan-900 tracking-tight leading-tight line-clamp-2 min-h-[2rem]">
+                      {product.name}
+                    </h3>
+                    
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded">
+                        {product.category}
+                      </span>
+                      <span className="text-xs text-cyan-600 font-mono bg-white px-2 py-1 rounded border">
+                        SKU: {product.code || "N/A"}
+                      </span>
+                    </div>
+                  </Link>
+
+                  {/* Cart Actions - Properly Sized */}
+                  <div className="mt-auto pt-3 border-t border-cyan-100">
+                    {addedProducts.includes(product._id) ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-cyan-700">Qty:</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => decrementQuantity(product._id)}
+                              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
+                            >
+                              −
+                            </button>
+                            <input
+  type="number"
+  value={quantities[product._id] || 0}
+  min="0"
+  onChange={(e) => {
+    const newQty = Math.max(0, Number(e.target.value));
+    setQuantities((prev) => ({ ...prev, [product._id]: newQty }));
+    updateQuantity(product._id, newQty);
+    if (newQty === 0) handleRemoveFromCart(product._id);
+  }}
+  className="w-8 sm:w-10 text-center py-0 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+/>
+                            <button
+                              onClick={() => incrementQuantity(product._id)}
+                              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveFromCart(product._id)}
+                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
+                        >
+                          Remove from List
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
+                      >
+                        Add To Enquiry List
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+{/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="flex justify-center items-center space-x-2 mt-12 flex-wrap gap-2">
+    <button
+      onClick={() => goToPage(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Previous
+    </button>
+
+    {(() => {
+      const groupStart = Math.floor((currentPage - 1) / 5) * 5 + 1;
+      const groupEnd = Math.min(groupStart + 4, totalPages);
+      return Array.from({ length: groupEnd - groupStart + 1 }, (_, i) => {
+        const page = groupStart + i;
+        return (
+          <button
+            key={page}
+            onClick={() => goToPage(page)}
+            className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
+              currentPage === page
+                ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white"
+                : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
+            }`}
+          >
+            {page}
+          </button>
+        );
+      });
+    })()}
+
+    <button
+      onClick={() => goToPage(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Next
+    </button>
+  </div>
+)}
+
+
+        </>
+      )}
+    </div>
+  );
+}

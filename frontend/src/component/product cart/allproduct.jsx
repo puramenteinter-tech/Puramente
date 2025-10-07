@@ -67,17 +67,17 @@ const ProductCard = () => {
     });
   };
 
-  const incrementQuantity = (_id) => {
-    const newQty = (quantities[_id] || 1) + 1;
-    setQuantities((prev) => ({ ...prev, [_id]: newQty }));
-    updateQuantity(_id, newQty);
-  };
+const incrementQuantity = (_id) => {
+  const newQty = (quantities[_id] || 0) + 1;
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
+};
 
-  const decrementQuantity = (_id) => {
-    const newQty = Math.max((quantities[_id] || 1) - 1, 1);
-    setQuantities((prev) => ({ ...prev, [_id]: newQty }));
-    updateQuantity(_id, newQty);
-  };
+const decrementQuantity = (_id) => {
+  const newQty = Math.max((quantities[_id] || 0) - 1, 0);
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
+};
 
   const currentProducts = products;
 
@@ -187,23 +187,24 @@ const ProductCard = () => {
                         >
                           −
                         </button>
-                        <input
-                          type="number"
-                          value={quantities[product._id] || 1}
-                          min="1"
-                          onChange={(e) => {
-                            const newQty = Math.max(Number(e.target.value), 1);
-                            setQuantities((prev) => ({
-                              ...prev,
-                              [product._id]: newQty,
-                            }));
-                            updateQuantity(product._id, newQty);
-                          }}
-                          className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
-                        />
+                      <input
+  type="number"
+  value={quantities[product._id] ?? 0}
+  min="0"
+  onChange={(e) => {
+    const newQty = Math.max(Number(e.target.value), 0);
+    setQuantities((prev) => ({
+      ...prev,
+      [product._id]: newQty,
+    }));
+    updateQuantity(product._id, newQty);
+  }}
+  className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+/>
+
                         <button
                           onClick={() => incrementQuantity(product._id)}
-                          className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
+                          className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all cursor-pointer"
                         >
                           +
                         </button>
@@ -211,7 +212,7 @@ const ProductCard = () => {
                     </div>
                     <button
                       onClick={() => handleRemoveFromCart(product._id)}
-                      className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
+                      className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all cursor-pointer"
                     >
                       Remove from List
                     </button>
@@ -219,7 +220,7 @@ const ProductCard = () => {
                 ) : (
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all cursor-pointer"
                   >
                     Add To Enquiry List
                   </button>
@@ -231,41 +232,51 @@ const ProductCard = () => {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2 mt-12 flex-wrap gap-2">
-          {currentPage > 1 && (
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
-            >
-              Previous
-            </button>
-          )}
-          
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
-                currentPage === i + 1 
-                  ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white" 
-                  : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          
-          {currentPage < totalPages && (
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
-            >
-              Next
-            </button>
-          )}
-        </div>
-      )}
+{totalPages > 1 && (
+  <div className="flex justify-center items-center space-x-2 mt-12 flex-wrap gap-2">
+    {currentPage > 1 && (
+      <button
+        onClick={() => handlePageChange(currentPage - 1)}
+        className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
+      >
+        Previous
+      </button>
+    )}
+
+    {/* Show only 5 pages at a time */}
+    {(() => {
+      const startPage = Math.floor((currentPage - 1) / 5) * 5 + 1;
+      const endPage = Math.min(startPage + 4, totalPages);
+      const pages = [];
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
+              currentPage === i
+                ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white"
+                : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+      return pages;
+    })()}
+
+    {currentPage < totalPages && (
+      <button
+        onClick={() => handlePageChange(currentPage + 1)}
+        className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
+      >
+        Next
+      </button>
+    )}
+  </div>
+)}
+
     </div>
   );
 };

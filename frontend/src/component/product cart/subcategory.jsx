@@ -71,23 +71,25 @@ export default function SubCategoryPage() {
     });
   };
 
-  const incrementQuantity = (_id) => {
-    const newQty = (quantities[_id] || 1) + 1;
-    setQuantities((prev) => ({ ...prev, [_id]: newQty }));
-    updateQuantity(_id, newQty);
-  };
+const incrementQuantity = (_id) => {
+  const newQty = (quantities[_id] || 0) + 1; // start from 0
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
+};
 
-  const decrementQuantity = (_id) => {
-    const newQty = Math.max(1, (quantities[_id] || 1) - 1);
-    setQuantities((prev) => ({ ...prev, [_id]: newQty }));
-    updateQuantity(_id, newQty);
-  };
+const decrementQuantity = (_id) => {
+  const currentQty = quantities[_id] || 0;
+  const newQty = Math.max(0, currentQty - 1); // allow 0, not below
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
+};
+
 
   const getImageSrc = (product) => {
     if (product?.imageUrl) return product.imageUrl;
     if (product?.imageurl) return product.imageurl;
     if (product?.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_800,h_990,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
     }
     return "/default-placeholder.jpg";
   };
@@ -106,14 +108,14 @@ export default function SubCategoryPage() {
     };
 
     return (
-      <div className="relative w-full h-56 p-0 bg-gradient-to-br from-cyan-50 to-white">
+      <div className="relative w-full h-75 p-0 bg-gradient-to-br from-cyan-50 to-white">
         {imgLoading && (
           <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-t-xl"></div>
         )}
         <img
           src={imgSrc}
           alt={`${product.name} – ${product.category} by Puramente | fashion jewellery wholesale suppliers in India`}
-          className={`w-full h-full object-cover rounded-t-xl transition-all duration-300 hover:scale-105 ${
+          className={`w-full h-70 rounded-t-xl transition-all duration-300 hover:scale-105 ${
             imgLoading ? "opacity-0" : "opacity-100"
           }`}
           onError={handleError}
@@ -211,10 +213,10 @@ export default function SubCategoryPage() {
                               </button>
                               <input
                                 type="number"
-                                value={quantities[product._id] || 1}
+                                value={quantities[product._id] || 0}
                                 min="1"
                                 onChange={(e) => {
-                                  const newQty = Math.max(Number(e.target.value), 1);
+                                  const newQty = Math.max(0, Number(e.target.value), 1);
                                   setQuantities((prev) => ({
                                     ...prev,
                                     [product._id]: newQty,
@@ -253,57 +255,51 @@ export default function SubCategoryPage() {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-12 flex-wrap gap-2">
-                <button
-                  onClick={() => {
-                    if (currentPage - 1 > 1 && !Isauthanticate()) {
-                      navigate("/login", { replace: false, state: { from: window.location.pathname } });
-                      return;
-                    }
-                    setCurrentPage((prev) => Math.max(prev - 1, 1));
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
+          {/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="flex justify-center items-center space-x-2 mt-12 flex-wrap gap-2">
+    <button
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
+      disabled={currentPage === 1}
+    >
+      Previous
+    </button>
 
-                {[...Array(totalPages)].map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      if (idx + 1 > 1 && !Isauthanticate()) {
-                        navigate("/login", { replace: false, state: { from: window.location.pathname } });
-                        return;
-                      }
-                      setCurrentPage(idx + 1);
-                    }}
-                    className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
-                      currentPage === idx + 1 
-                        ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white" 
-                        : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
+    {/* Show 5 pages at a time */}
+    {(() => {
+      const groupSize = 5;
+      const startPage = Math.floor((currentPage - 1) / groupSize) * groupSize + 1;
+      const endPage = Math.min(startPage + groupSize - 1, totalPages);
+      const buttons = [];
+      for (let i = startPage; i <= endPage; i++) {
+        buttons.push(
+          <button
+            key={i}
+            onClick={() => setCurrentPage(i)}
+            className={`px-4 py-2 rounded-lg shadow font-bold transition-all ${
+              currentPage === i
+                ? "bg-gradient-to-r from-cyan-700 to-teal-700 text-white"
+                : "bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+      return buttons;
+    })()}
 
-                <button
-                  onClick={() => {
-                    if (currentPage + 1 > 1 && !Isauthanticate()) {
-                      navigate("/login", { replace: false, state: { from: window.location.pathname } });
-                      return;
-                    }
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
-            )}
+    <button
+      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-lg shadow font-bold hover:from-cyan-600 hover:to-teal-600 transition-all"
+      disabled={currentPage === totalPages}
+    >
+      Next
+    </button>
+  </div>
+)}
+
           </>
         )}
       </div>

@@ -14,7 +14,7 @@ export default function AdminUserView() {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(`${BaseURL}/api/users/all`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         setUsers(response.data);
       } catch (err) {
@@ -45,7 +45,7 @@ export default function AdminUserView() {
           onChange={(e) => setSearchEmail(e.target.value)}
         />
 
-        <div className="w-full max-w-6xl overflow-x-auto bg-white shadow-lg rounded-lg p-4">
+        <div className="w-full max-w-4xl overflow-x-auto bg-white shadow-lg rounded-lg p-4">
           {loading ? (
             <p className="text-gray-500 text-center py-4">Loading users...</p>
           ) : error ? (
@@ -73,17 +73,10 @@ export default function AdminUserView() {
                     <th className="py-3 px-6 text-left border border-gray-300">
                       Company Website
                     </th>
-                    <th className="py-3 px-6 text-left border border-gray-300">
-                      Last Login
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.map((user, index) => {
-                    const loginDate = user.lastLogin
-                      ? new Date(user.lastLogin).toLocaleString()
-                      : "Never logged in";
-
                     return (
                       <tr
                         key={user._id}
@@ -128,19 +121,13 @@ export default function AdminUserView() {
                             "N/A"
                           )}
                         </td>
-                        <td className="py-3 px-6 border border-gray-300 text-gray-600">
-                          {loginDate}
-                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-
               {filteredUsers.length === 0 && (
-                <p className="text-gray-500 text-center py-4">
-                  No users found
-                </p>
+                <p className="text-gray-500 text-center py-4">No users found</p>
               )}
             </>
           )}

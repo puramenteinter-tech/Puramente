@@ -92,15 +92,15 @@ const Checkout = () => {
   };
 
   // Cart item handlers
-  const handleQuantityChange = (id, value) => {
-    const quantity = Math.max(1, value);
-    if (quantity !== value) {
-      setErrors(prev => ({ ...prev, [id]: "Minimum quantity is 1" }));
-    } else if (errors[id]) {
-      setErrors(prev => ({ ...prev, [id]: "" }));
-    }
-    updateQuantity(id, quantity);
-  };
+const handleQuantityChange = (id, value) => {
+  const quantity = Math.max(0, value); // allow 0
+  if (quantity === 0) {
+    removeFromCart(id); // ✅ remove when reaches 0
+    return;
+  }
+  updateQuantity(id, quantity);
+};
+
 
   const handleRemoveItem = (id) => {
     removeFromCart(id);
@@ -244,28 +244,30 @@ const Checkout = () => {
                     <h3 className="font-medium text-gray-800">{item.name}</h3>
                     <p className="text-sm text-gray-500">SKU: {item.code}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
-                      className="w-8 h-8 flex items-center justify-center bg-cyan-100 text-cyan-600 rounded-full"
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => handleQuantityChange(item._id, parseInt(e.target.value) || 1)}
-                      className="w-12 text-center border border-gray-300 rounded py-1"
-                    />
-                    <button
-                      onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
-                      className="w-8 h-8 flex items-center justify-center bg-cyan-100 text-cyan-600 rounded-full"
-                    >
-                      +
-                    </button>
-                  </div>
+             <div className="flex items-center gap-2">
+  <button
+    onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+    className="w-8 h-8 flex items-center justify-center bg-cyan-100 text-cyan-600 rounded-full"
+  >
+    -
+  </button>
+  <input
+    type="number"
+    min="0" // ✅ allow 0
+    value={item.quantity}
+    onChange={(e) =>
+      handleQuantityChange(item._id, parseInt(e.target.value) || 0)
+    }
+    className="w-12 text-center border border-gray-300 rounded py-1"
+  />
+  <button
+    onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+    className="w-8 h-8 flex items-center justify-center bg-cyan-100 text-cyan-600 rounded-full"
+  >
+    +
+  </button>
+</div>
+
                   <button
                     onClick={() => handleRemoveItem(item._id)}
                     className="text-red-500 hover:text-red-700"

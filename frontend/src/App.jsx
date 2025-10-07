@@ -33,6 +33,9 @@ import BlogUpload from "./component/admin/component/BlogUpload";
 import EditBlog from "./component/admin/component/Editblog";
 import EditProduct from "./component/admin/component/edit-product";
 import AllDesigns from "./component/pages/alldesign";
+import Navbar from "./component/navbar/navbar";
+
+
 function LanguageRoutes() {
   const { lang } = useParams();
   const supported = ["en", "hi", "fr", "de", "es", "it", "pt"];
@@ -76,7 +79,7 @@ function LanguageRoutes() {
       <Route path="category/Bracelet" element={<Navigate to="/category/Bracelets" replace />} />
       <Route path="category/Earring" element={<Navigate to="/category/Earrings" replace />} />
       <Route path="category/Necklace" element={<Navigate to="/category/Necklaces" replace />} />
-      <Route path="category/:category" element={<Categorycart />}></Route>
+   <Route path="category/:categoryName" element={<Categorycart />} />
       <Route path="singleproduct/:id" element={<SingleProduct />}></Route>
       <Route path="excelfile" element={<ExcelUploader />}></Route>
     </Routes>
@@ -88,7 +91,9 @@ function App() {
     <>
       <Router>
         <CartProvider>
+
           <Layout>
+       
             <Routes>
               {/* Optional language prefix */}
               <Route path=":lang/*" element={<LanguageRoutes />} />

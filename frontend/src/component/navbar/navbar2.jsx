@@ -41,14 +41,6 @@ export default function Navbar2() {
         { name: "Without Gemstone", path: "withoutgemstone" },
       ],
     },
-    {
-      name: "Pendant",
-      category: "Pendants",
-      subcategories: [
-        { name: "With Gemstone", path: "withgemstone" },
-        { name: "Without Gemstone", path: "withoutgemstone" },
-      ],
-    },
   ];
 
   const [dropdown, setDropdown] = useState(false);

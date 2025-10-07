@@ -201,7 +201,7 @@ export default function Footer() {
       <div className="p-2">
         <h1 className="text-white m-8">
           {t(
-            "© 2025 Puramente International All Rights Reserved! Developed By Netbond Technologies"
+            "© 2025 Puramente International All Rights Reserved! Developed By Kontent Kraft Digital"
           )}
         </h1>
       </div>

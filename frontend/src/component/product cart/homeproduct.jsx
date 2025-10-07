@@ -67,22 +67,23 @@ const ProductCard = () => {
   };
 
   const incrementQuantity = (_id) => {
-    const newQty = (quantities[_id] || 1) + 1;
+    const newQty = (quantities[_id] || 0) + 1;
     setQuantities((prev) => ({ ...prev, [_id]: newQty }));
     updateQuantity(_id, newQty);
   };
 
-  const decrementQuantity = (_id) => {
-    const newQty = Math.max((quantities[_id] || 1) - 1, 1);
-    setQuantities((prev) => ({ ...prev, [_id]: newQty }));
-    updateQuantity(_id, newQty);
-  };
+const decrementQuantity = (_id) => {
+  const newQty = Math.max((quantities[_id] || 0) - 1, 0);
+  setQuantities((prev) => ({ ...prev, [_id]: newQty }));
+  updateQuantity(_id, newQty);
+};
+
 
   const getImageSrc = (product) => {
     if (product?.imageUrl) return product.imageUrl;
     if (product?.imageurl) return product.imageurl;
     if (product?.cloudinaryId) {
-      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_400,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
+      return `https://res.cloudinary.com/ddtharbsi/image/upload/c_fill,w_600,h_600,q_auto:best,f_auto,dpr_2.0/${product.cloudinaryId}`;
     }
     return "/default-placeholder.jpg";
   };
@@ -118,7 +119,7 @@ const ProductCard = () => {
               data-aos-duration="500"
             >
               {/* Image Section - Full Width & Height */}
-              <div className="relative w-full h-56 p-0 bg-gradient-to-br from-cyan-50 to-white">
+              <div className="relative w-full h-66 p-0 bg-gradient-to-br from-cyan-50 to-white">
                 <Link to={`/singleproduct/${product._id}`} className="block w-full h-full">
                   <img
                     src={getImageSrc(product)}
@@ -166,19 +167,20 @@ const ProductCard = () => {
                             −
                           </button>
                           <input
-                            type="number"
-                            value={quantities[product._id] || 1}
-                            min="1"
-                            onChange={(e) => {
-                              const newQty = Math.max(Number(e.target.value), 1);
-                              setQuantities((prev) => ({
-                                ...prev,
-                                [product._id]: newQty,
-                              }));
-                              updateQuantity(product._id, newQty);
-                            }}
-                            className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
-                          />
+  type="number"
+  value={quantities[product._id] || 0}
+  min="0"
+  onChange={(e) => {
+    const newQty = Math.max(Number(e.target.value), 0);
+    setQuantities((prev) => ({
+      ...prev,
+      [product._id]: newQty,
+    }));
+    updateQuantity(product._id, newQty);
+  }}
+  className="w-12 text-center py-1 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+/>
+
                           <button
                             onClick={() => incrementQuantity(product._id)}
                             className="bg-cyan-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow hover:bg-cyan-700 transition-all"
