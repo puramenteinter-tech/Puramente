@@ -83,9 +83,9 @@ export default function Navbar1() {
           Certified Ethical Manufacturing by
         </span>
         <img
-          src="/sedex.png"
+          src="/smetaSedex.png"
           alt="Sedex Certified"
-          className="h-12 sm:h-18 md:h-12 lg:h-18 w-auto object-contain"
+          className="h-12 sm:h-18 md:h-12 lg:h-14 w-auto object-contain"
         />
       </div>
 
@@ -211,67 +211,69 @@ export default function Navbar1() {
         </div>
       </nav>
 
-      {/* Sidebar Menu */}
-      <div
-        className={`${
-          sidemenu
-            ? "flex fixed shadow-2xl z-30 top-0 h-screen w-[70%] bg-background-sky"
-            : "hidden"
-        }`}
-      >
-        <button className="absolute h-12 w-12 p-2 top-6 right-6" onClick={toggleSideMenu}>
-          <IoCloseSharp className="w-14 h-10 font-bold" />
+     {/* Sidebar Menu */}
+<div
+  className={`${
+    sidemenu
+      ? "flex fixed shadow-2xl z-30 top-0 h-screen w-[70%] bg-background-sky flex-col justify-between"
+      : "hidden"
+  }`}
+>
+  <button className="absolute h-12 w-12 p-2 top-6 right-6" onClick={toggleSideMenu}>
+    <IoCloseSharp className="w-14 h-10 font-bold" />
+  </button>
+
+  {/* Menu Links */}
+  <div className="flex flex-col items-start text-2xl text-button-orange gap-8 mt-32 ml-12 font-bold">
+    <Link onClick={toggleSideMenu} to="/">{t("Home")}</Link>
+    <Link onClick={toggleSideMenu} to="/shopall">Jewellery Design</Link>
+    <Link onClick={toggleSideMenu} to="/contactus">{t("Contact Us")}</Link>
+    <Link onClick={toggleSideMenu} to="/aboutus">{t("About Us")}</Link>
+    <Link onClick={toggleSideMenu} to="/faq">FAQ</Link>
+    <Link onClick={toggleSideMenu} to="/privacy">Privacy</Link>
+
+    {IsAdmin() && (
+      <Link to="dashboard" onClick={toggleSideMenu}>
+        <button className="bg-cyan-900 border-black text-lg w-44 h-10 text-white">
+          Dashboard
         </button>
-        <div className="h-full flex flex-col items-start text-2xl text-button-orange gap-8 mt-32 ml-12 font-bold">
-          {Isauthanticate() ? (
-            <button
-              onClick={() => {
-                Logout();
-                setsidemenu(false);
-              }}
-              className="bg-black text-white w-36 text-lg h-10"
-            >
-              Logout
-            </button>
-          ) : (
-            <Link to="/login" onClick={toggleSideMenu}>
-              <button className="bg-black text-white w-36 text-lg h-10">Login</button>
-            </Link>
-          )}
-          <Link onClick={toggleSideMenu} to="/">
-            {t("Home")}
-          </Link>
-          <Link onClick={toggleSideMenu} to="shopall">
-            Jewellery Design
-          </Link>
-          <Link onClick={toggleSideMenu} to="/contactus">
-            {t("Contact Us")}
-          </Link>
-          <Link onClick={toggleSideMenu} to="/aboutus">
-            {t("About Us")}
-          </Link>
-          <Link onClick={toggleSideMenu} to="/faq">
-            FAQ
-          </Link>
-          <Link onClick={toggleSideMenu} to="/privacy">
-            Privacy
-          </Link>
-          {IsAdmin() && (
-            <Link to="dashboard" onClick={toggleSideMenu}>
-              <button className="bg-cyan-900 border-black text-lg w-44 h-10 text-white">
-                Dashboard
-              </button>
-            </Link>
-          )}
-          <Link onClick={toggleSideMenu} to="/">
-            <img
-              className="absolute top-[-100px] mx-[-34px] h-80 w-74"
-              src="/puralogo.png"
-              alt=""
-            />
-          </Link>
-        </div>
-      </div>
+      </Link>
+    )}
+
+    {Isauthanticate() ? (
+      <button
+        onClick={() => {
+          Logout();
+          setsidemenu(false);
+        }}
+        className="bg-black text-white w-36 text-lg h-10 ml-4"
+      >
+        Logout
+      </button>
+    ) : (
+      <Link to="/login" onClick={toggleSideMenu}>
+        <button className="bg-black text-white w-36 text-lg h-10">Login</button>
+      </Link>
+    )}
+  </div>
+
+  {/* Social Icons */}
+  <div className="flex justify-center gap-5 mb-10 mt-4">
+    <a href="https://www.instagram.com/puramenteinternational/" target="_blank" rel="noopener noreferrer">
+      <FaInstagram className="text-black hover:text-gray-700 border rounded border-white p-1" size={28} />
+    </a>
+    <a href="https://www.facebook.com/puramenteinternational1/" target="_blank" rel="noopener noreferrer">
+      <FaFacebookF className="text-black hover:text-gray-700 border rounded border-white p-1" size={28} />
+    </a>
+    <a href="https://www.linkedin.com/company/puramente-international/" target="_blank" rel="noopener noreferrer">
+      <FaLinkedinIn className="text-black hover:text-gray-700 border rounded border-white p-1" size={28} />
+    </a>
+    <a href="https://www.youtube.com/@puramenteinternational1982" target="_blank" rel="noopener noreferrer">
+      <FaYoutube className="text-black hover:text-gray-700 border rounded border-white p-1" size={28} />
+    </a>
+  </div>
+</div>
+
     </div>
   );
 }

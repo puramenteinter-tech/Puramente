@@ -11,7 +11,7 @@ export default function SingleProduct() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
 
   const { id } = useParams();
   const { addToCart, cartItems, removeFromCart } = useCart();
@@ -46,10 +46,14 @@ export default function SingleProduct() {
   };
 
   const handleAddToCart = () => {
-    if (!product) return;
-    const productWithQty = { ...product, quantity };
-    addToCart(productWithQty);
-  };
+  if (!product || quantity <= 0) {
+    alert("Please select at least 1 quantity");
+    return;
+  }
+  const productWithQty = { ...product, quantity };
+  addToCart(productWithQty);
+};
+
 
   const handleRemoveFromCart = () => {
     if (!product) return;
@@ -173,34 +177,35 @@ export default function SingleProduct() {
                 </div>
               )}
 
-              {/* Quantity Selector */}
-              <div className="flex items-center justify-between mt-6 p-3 bg-gray-50 rounded-lg">
-                <span className="text-cyan-800 font-semibold">Quantity:</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    value={quantity}
-                    min={1}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value);
-                      if (!isNaN(val) && val > 0) setQuantity(val);
-                    }}
-                    className="w-16 text-center border border-cyan-300 rounded-md text-cyan-800 font-semibold py-1"
-                  />
-                  <button
-                    className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
-                    onClick={() => setQuantity((q) => q + 1)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+            {/* Quantity Selector */}
+<div className="flex items-center justify-between mt-6 p-3 bg-gray-50 rounded-lg">
+  <span className="text-cyan-800 font-semibold">Quantity:</span>
+  <div className="flex items-center gap-2">
+    <button
+      className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
+      onClick={() => setQuantity((q) => Math.max(0, q - 1))} // 👈 min 0
+    >
+      -
+    </button>
+    <input
+      type="number"
+      value={quantity}
+      min={0} // 👈 allow 0
+      onChange={(e) => {
+        const val = parseInt(e.target.value);
+        if (!isNaN(val) && val >= 0) setQuantity(val); // 👈 min 0
+      }}
+      className="w-16 text-center border border-cyan-300 rounded-md text-cyan-800 font-semibold py-1"
+    />
+    <button
+      className="bg-cyan-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-cyan-500 transition"
+      onClick={() => setQuantity((q) => q + 1)}
+    >
+      +
+    </button>
+  </div>
+</div>
+
 
               {/* Cart Buttons */}
               <div className="mt-6">

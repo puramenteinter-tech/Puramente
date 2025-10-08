@@ -203,71 +203,69 @@ const decrementQuantity = (_id) => {
 
                 {/* Content Section - Properly Compressed */}
                 <div className="flex flex-col flex-grow p-3">
-                  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-2">
-                    <h3 className="text-sm font-bold text-cyan-900 tracking-tight leading-tight line-clamp-2 min-h-[2rem]">
-                      {product.name}
-                    </h3>
-                    
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded">
-                        {product.category}
-                      </span>
-                      <span className="text-xs text-cyan-600 font-mono bg-white px-2 py-1 rounded border">
-                        SKU: {product.code || "N/A"}
-                      </span>
-                    </div>
-                  </Link>
+  <Link to={`/singleproduct/${product._id}`} className="flex-grow mb-2">
+    {/* Title + SKU on same line */}
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="text-sm font-bold text-cyan-900 tracking-tight leading-tight line-clamp-2">
+        {product.name}
+      </h3>
+      <span className="text-xs text-cyan-600 font-mono bg-white px-2 py-1 rounded border">
+        SKU: {product.code || "N/A"}
+      </span>
+    </div>
+  </Link>
 
-                  {/* Cart Actions - Properly Sized */}
-                  <div className="mt-auto pt-3 border-t border-cyan-100">
-                    {addedProducts.includes(product._id) ? (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-semibold text-cyan-700">Qty:</span>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => decrementQuantity(product._id)}
-                              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
-                            >
-                              −
-                            </button>
-                            <input
-  type="number"
-  value={quantities[product._id] || 0}
-  min="0"
-  onChange={(e) => {
-    const newQty = Math.max(0, Number(e.target.value));
-    setQuantities((prev) => ({ ...prev, [product._id]: newQty }));
-    updateQuantity(product._id, newQty);
-    if (newQty === 0) handleRemoveFromCart(product._id);
-  }}
-  className="w-8 sm:w-10 text-center py-0 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
-/>
-                            <button
-                              onClick={() => incrementQuantity(product._id)}
-                              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveFromCart(product._id)}
-                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
-                        >
-                          Remove from List
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
-                      >
-                        Add To Enquiry List
-                      </button>
-                    )}
-                  </div>
-                </div>
+  {/* Cart Actions */}
+  <div className="mt-auto pt-3 border-t border-cyan-100">
+    {addedProducts.includes(product._id) ? (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-xs font-semibold text-cyan-700">Qty:</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => decrementQuantity(product._id)}
+              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
+            >
+              −
+            </button>
+            <input
+              type="number"
+              value={quantities[product._id] || 0}
+              min="0"
+              onChange={(e) => {
+                const newQty = Math.max(0, Number(e.target.value));
+                setQuantities((prev) => ({ ...prev, [product._id]: newQty }));
+                updateQuantity(product._id, newQty);
+                if (newQty === 0) handleRemoveFromCart(product._id);
+              }}
+              className="w-8 sm:w-10 text-center py-0 border border-cyan-200 rounded text-xs font-bold text-cyan-800"
+            />
+            <button
+              onClick={() => incrementQuantity(product._id)}
+              className="bg-cyan-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow hover:bg-cyan-700 transition-all"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <button
+          onClick={() => handleRemoveFromCart(product._id)}
+          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-2 rounded shadow hover:from-red-600 hover:to-red-700 transition-all"
+        >
+          Remove from List
+        </button>
+      </div>
+    ) : (
+      <button
+        onClick={() => handleAddToCart(product)}
+        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:from-cyan-600 hover:to-teal-600 transition-all"
+      >
+        Add To Enquiry List
+      </button>
+    )}
+  </div>
+</div>
+
               </div>
             ))}
           </div>
